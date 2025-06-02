@@ -14,15 +14,15 @@ export default function GeofenceForm({ onClose, geofence, isNew = false, onUpdat
   const [geofenceType, setGeofenceType] = useState<"circle" | "polygon" | "pointer">(geofence?.type || "circle")
   const [radius, setRadius] = useState<number>(geofence?.radius || 500)
   const [name, setName] = useState(geofence?.name || "")
-  const [location, setLocation] = useState(geofence?.location || "")
+  // const [location, setLocation] = useState(geofence?.location || "")
   const [locationId, setLocationId] = useState(geofence?.locationId || "")
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number }>(
     geofence?.coordinates || { lat: 19.076, lng: 72.8777 },
   )
   const [tag, setTag] = useState(geofence?.tag || "")
-  const [geozoneType, setGeozoneType] = useState(geofence?.geozoneType || "")
+  // const [geozoneType, setGeozoneType] = useState(geofence?.geozoneType || "")
   const [stopType, setStopType] = useState(geofence?.stopType || "")
-  const [shipmentId, setShipmentId] = useState(geofence?.shipmentId || "")
+  // const [shipmentId, setShipmentId] = useState(geofence?.shipmentId || "")
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const [mapLoaded, setMapLoaded] = useState(false)
   const [mapInstance, setMapInstance] = useState<any>(null)
@@ -394,12 +394,12 @@ export default function GeofenceForm({ onClose, geofence, isNew = false, onUpdat
       type: geofenceType,
       radius,
       coordinates,
-      location,
+      //location,
       locationId,
       tag,
-      geozoneType,
+      //geozoneType,
       stopType,
-      shipmentId,
+      //shipmentId,
       polygonPoints: customPolygonPoints,
       ...changes,
     }
@@ -425,12 +425,12 @@ export default function GeofenceForm({ onClose, geofence, isNew = false, onUpdat
         type: geofenceType,
         radius,
         coordinates,
-        location,
+        //location,
         locationId,
         tag,
-        geozoneType,
+        //geozoneType,
         stopType,
-        shipmentId,
+        //shipmentId,
         polygonPoints: customPolygonPoints,
       })
     } catch (error) {
@@ -468,10 +468,10 @@ export default function GeofenceForm({ onClose, geofence, isNew = false, onUpdat
   }
 
   // Handle location change
-  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLocation(e.target.value)
-    updateParent({ location: e.target.value })
-  }
+  // const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setLocation(e.target.value)
+  //   updateParent({ location: e.target.value })
+  // }
 
   // Handle locationId change
   const handleLocationIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -486,10 +486,10 @@ export default function GeofenceForm({ onClose, geofence, isNew = false, onUpdat
   }
 
   // Handle geozoneType change
-  const handleGeozoneTypeChange = (value: string) => {
-    setGeozoneType(value)
-    updateParent({ geozoneType: value })
-  }
+  // const handleGeozoneTypeChange = (value: string) => {
+  //   setGeozoneType(value)
+  //   updateParent({ geozoneType: value })
+  // }
 
   // Handle stopType change
   const handleStopTypeChange = (value: string) => {
@@ -498,10 +498,10 @@ export default function GeofenceForm({ onClose, geofence, isNew = false, onUpdat
   }
 
   // Handle shipmentId change
-  const handleShipmentIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setShipmentId(e.target.value)
-    updateParent({ shipmentId: e.target.value })
-  }
+  // const handleShipmentIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setShipmentId(e.target.value)
+  //   updateParent({ shipmentId: e.target.value })
+  // }
 
   // Listen for delete polygon point events
   useEffect(() => {
@@ -554,7 +554,7 @@ export default function GeofenceForm({ onClose, geofence, isNew = false, onUpdat
 
         <div className="flex h-[calc(90vh-140px)]">
           {/* Left Section - Basic Details */}
-          <div className="w-1/2 p-6 border-r border-gray-200 overflow-y-auto">
+          <div className="w-2/5 p-6 border-r border-gray-200 overflow-y-auto">
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Basic Details</h3>
@@ -662,7 +662,7 @@ export default function GeofenceForm({ onClose, geofence, isNew = false, onUpdat
                     </div>
                   </div>
 
-                  <div>
+                  {/* <div>
                     <Label htmlFor="location" className="text-sm font-medium text-gray-700">
                       Location Description
                     </Label>
@@ -673,9 +673,8 @@ export default function GeofenceForm({ onClose, geofence, isNew = false, onUpdat
                       placeholder="E.g., Mumbai Warehouse, Delhi Hub"
                       className="mt-1"
                     />
-                  </div>
+                  </div> */}
 
-                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="locationId" className="text-sm font-medium text-gray-700">
                         Location ID
@@ -688,6 +687,7 @@ export default function GeofenceForm({ onClose, geofence, isNew = false, onUpdat
                         className="mt-1"
                       />
                     </div>
+
                     <div>
                       <Label htmlFor="tag" className="text-sm font-medium text-gray-700">
                         Tag
@@ -700,10 +700,9 @@ export default function GeofenceForm({ onClose, geofence, isNew = false, onUpdat
                         className="mt-1"
                       />
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
+                  <div>
+                    {/* <div>
                       <Label htmlFor="geozoneType" className="text-sm font-medium text-gray-700">
                         Geozone Type
                       </Label>
@@ -717,7 +716,7 @@ export default function GeofenceForm({ onClose, geofence, isNew = false, onUpdat
                           <SelectItem value="Both">Both</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
+                    </div> */}
                     <div>
                       <Label htmlFor="stopType" className="text-sm font-medium text-gray-700">
                         Stop Type
@@ -729,13 +728,14 @@ export default function GeofenceForm({ onClose, geofence, isNew = false, onUpdat
                         <SelectContent>
                           <SelectItem value="Pickup">Pickup</SelectItem>
                           <SelectItem value="Delivery">Delivery</SelectItem>
+                          <SelectItem value="Loading">Waypoint</SelectItem>
                           <SelectItem value="Both">Both</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
 
-                  <div>
+                  {/* <div>
                     <Label htmlFor="shipmentId" className="text-sm font-medium text-gray-700">
                       Shipment ID
                     </Label>
@@ -746,14 +746,14 @@ export default function GeofenceForm({ onClose, geofence, isNew = false, onUpdat
                       placeholder="E.g., SH001"
                       className="mt-1"
                     />
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>
           </div>
 
           {/* Right Section - Geofence on Map Details */}
-          <div className="w-1/2 p-6 overflow-y-auto">
+          <div className="w-3/5 p-6 overflow-y-auto">
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Geofence on Map Details</h3>
@@ -761,7 +761,7 @@ export default function GeofenceForm({ onClose, geofence, isNew = false, onUpdat
                 {/* Map Preview */}
                 <div className="mb-6">
                   <Label className="text-sm font-medium text-gray-700 mb-2 block">Map Preview</Label>
-                  <div className="border rounded-lg overflow-hidden h-64">
+                  <div className="border rounded-lg overflow-hidden h-80">
                     <div ref={mapContainerRef} className="h-full w-full" />
                     {!leafletLoaded && (
                       <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80">
@@ -894,13 +894,13 @@ export default function GeofenceForm({ onClose, geofence, isNew = false, onUpdat
                 onClick={() => {
                   // Reset form to initial values
                   setName(geofence?.name || "")
-                  setLocation(geofence?.location || "")
+                  //setLocation(geofence?.location || "")
                   setLocationId(geofence?.locationId || "")
                   setCoordinates(geofence?.coordinates || { lat: 19.076, lng: 72.8777 })
                   setTag(geofence?.tag || "")
-                  setGeozoneType(geofence?.geozoneType || "")
+                  //setGeozoneType(geofence?.geozoneType || "")
                   setStopType(geofence?.stopType || "")
-                  setShipmentId(geofence?.shipmentId || "")
+                  //setShipmentId(geofence?.shipmentId || "")
                   setGeofenceType(geofence?.type || "circle")
                   setRadius(geofence?.radius || 500)
                   setCustomPolygonPoints(geofence?.polygonPoints || [])

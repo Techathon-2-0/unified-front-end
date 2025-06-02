@@ -2,22 +2,22 @@ export interface Geofence {
   id: string
   name: string
   type: "circle" | "polygon" | "pointer"
-  radius: number
+  radius?: number
   coordinates: { lat: number; lng: number }
-  location: string
   locationId?: string
   polygonPoints?: { lat: number; lng: number }[]
   tag?: string
-  geozoneType?: string
   stopType?: string
-  shipmentId?: string
-  createdAt?: string
-  createdBy?: string
-  updatedAt?: string
-  updatedBy?: string
   status?: string
-  unloadingTime?: number
-  description?: string
+  createdAt?: string
+  updatedAt?: string
+  //location: string
+  //shipmentId?: string
+  // geozoneType?: string
+  // createdBy?: string
+  // updatedBy?: string
+  // unloadingTime?: number
+  // description?: string
 }
 
 export interface GeofenceFormProps {

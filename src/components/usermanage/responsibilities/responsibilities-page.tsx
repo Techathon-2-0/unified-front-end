@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { motion } from "framer-motion"
 import { PlusCircle, Search, RefreshCw } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -25,24 +25,38 @@ export function ResponsibilitiesPage() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const itemsPerPage = 5
 
-  const { showSuccessToast, showErrorToast, Toaster } = useToast({ position: "top-right",});
+  // Create stable toast functions that won't change on re-renders
+  const { showSuccessToast, showErrorToast, Toaster } = useToast({ position: "top-right" })
+
+  // Use refs to store the latest toast functions to prevent stale closures
+  const toastRef = useRef({ showSuccessToast, showErrorToast })
+  toastRef.current = { showSuccessToast, showErrorToast }
+
+  // Stable toast functions that won't cause re-renders
+  const stableShowSuccessToast = useCallback((title: string, description: string) => {
+    toastRef.current.showSuccessToast(title, description)
+  }, [])
+
+  const stableShowErrorToast = useCallback((title: string, description: string) => {
+    toastRef.current.showErrorToast(title, description)
+  }, [])
 
   // Move loadRoles definition above useEffect
   const loadRoles = async () => {
     try {
       setIsLoading(true)
-      const roleData = await fetchRoles();
+      const roleData = await fetchRoles()
       // responsibilities.push(...roleData); // Use push to add items to the existing array
-      setResponsibilities(Array.isArray(roleData) ? [...roleData] : []);
+      setResponsibilities(Array.isArray(roleData) ? [...roleData] : [])
     } catch (error) {
-      showErrorToast("Error", "Failed to load responsibilities. Please try again.")
+      stableShowErrorToast("Error", "Failed to load responsibilities. Please try again.")
       console.error("Failed to load roles:", error)
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Fetch initial data on component mount  
+  // Fetch initial data on component mount
   useEffect(() => {
     loadRoles()
   }, [])
@@ -51,9 +65,15 @@ export function ResponsibilitiesPage() {
     try {
       setIsRefreshing(true)
       await loadRoles()
-      showSuccessToast("Data refreshed", "Responsibilities data has been refreshed successfully.")
+
+      // Use setTimeout to ensure toast shows after state update
+      setTimeout(() => {
+        stableShowSuccessToast("Data refreshed", "Responsibilities data has been refreshed successfully.")
+      }, 0)
     } catch (error) {
-      showErrorToast("Error", "Failed to refresh data. Please try again.")
+      setTimeout(() => {
+        stableShowErrorToast("Error", "Failed to refresh data. Please try again.")
+      }, 0)
     } finally {
       setIsRefreshing(false)
     }
@@ -71,7 +91,9 @@ export function ResponsibilitiesPage() {
   )
 
   const handleEdit = (responsibility: Responsibility) => {
-    setSelectedResponsibility(responsibility)
+    // Find the current responsibility from the array to get the latest data
+    const currentResponsibility = responsibilities.find((r) => r.id === responsibility.id) || responsibility
+    setSelectedResponsibility(currentResponsibility)
     setIsDrawerOpen(true)
   }
 
@@ -82,22 +104,37 @@ export function ResponsibilitiesPage() {
 
   const handleSave = async (responsibility: Responsibility) => {
     try {
+      let toastMessage = ""
+      let toastTitle = ""
+
       if (selectedResponsibility) {
         // Update existing responsibility
         const updatedResponsibility = await updateResponsibility(responsibility)
         setResponsibilities(responsibilities.map((r) => (r.id === responsibility.id ? updatedResponsibility : r)))
-        showSuccessToast("Profile updated", `${responsibility.role_name} has been updated successfully.`)
+        // Update selectedResponsibility with the latest data
+        setSelectedResponsibility(updatedResponsibility)
+        toastTitle = "Profile updated"
+        toastMessage = `${responsibility.role_name} has been updated successfully.`
       } else {
         // Create new responsibility
         const newResponsibility = await createResponsibility(responsibility)
         setResponsibilities([...responsibilities, newResponsibility])
-        showSuccessToast("Profile created", `${responsibility.role_name} has been created successfully.`)
+        toastTitle = "Profile created"
+        toastMessage = `${responsibility.role_name} has been created successfully.`
       }
+
       setIsDrawerOpen(false)
-      console.log("kuch toh ho rha hai");
+      console.log("kuch toh ho rha hai")
       await loadRoles() // Fetch all roles again after submit
+
+      // Show toast AFTER loadRoles completes to prevent interruption
+      setTimeout(() => {
+        stableShowSuccessToast(toastTitle, toastMessage)
+      }, 100) // Slightly longer delay to ensure everything is settled
     } catch (error) {
-      showErrorToast("Error", "Failed to save responsibility. Please try again.")
+      setTimeout(() => {
+        stableShowErrorToast("Error", "Failed to save responsibility. Please try again.")
+      }, 0)
       console.error("Failed to save responsibility:", error)
     }
   }
@@ -106,9 +143,15 @@ export function ResponsibilitiesPage() {
     try {
       await deleteResponsibility(id)
       setResponsibilities(responsibilities.filter((r) => r.id !== id))
-      showSuccessToast("Profile deleted", "The profile has been deleted successfully.")
+
+      // Use setTimeout to ensure toast shows after state update
+      setTimeout(() => {
+        stableShowSuccessToast("Profile deleted", "The profile has been deleted successfully.")
+      }, 0)
     } catch (error) {
-      showErrorToast("Error", "Failed to delete responsibility. Please try again.")
+      setTimeout(() => {
+        stableShowErrorToast("Error", "Failed to delete responsibility. Please try again.")
+      }, 0)
       console.error("Failed to delete responsibility:", error)
     }
   }

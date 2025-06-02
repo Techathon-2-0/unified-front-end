@@ -16,7 +16,7 @@ export function ResponsibilityModal({ open, onClose, responsibility, onSave }: R
   const [activeCategory, setActiveCategory] = useState("reports")
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [activeSection, setActiveSection] = useState<string>("basic")
-  const { showSuccessToast, showErrorToast, Toaster } = useToast({ position: "top-right", });
+  const { showSuccessToast, showErrorToast, Toaster } = useToast({ position: "top-right" })
 
   // Initialize feature sections with dynamic reports
   const [featureSections, setFeatureSections] = useState<FeatureSection[]>([
@@ -62,7 +62,7 @@ export function ResponsibilityModal({ open, onClose, responsibility, onSave }: R
   // Convert backend format to frontend format
   const convertBackendToFrontend = (responsibility: Responsibility) => {
     const newTabsAccess = { ...tabsAccess }
-    console.log("abhi abhi ", responsibility.report_access);
+    console.log("abhi abhi ", responsibility.report_access)
     responsibility.tabs_access.forEach((tabObj) => {
       const [key, value] = Object.entries(tabObj)[0]
 
@@ -177,11 +177,9 @@ export function ResponsibilityModal({ open, onClose, responsibility, onSave }: R
       tabs_access.push({ customer: tabsAccess.manage.customer === "view" ? 1 : 2 })
     }
 
-    let report_access = featureSections[0].features
-      .filter((feature) => feature.checked)
-      .map((feature) => feature.name)
-    if(tabsAccess.reports.allReports=="none"){
-      report_access=[];
+    let report_access = featureSections[0].features.filter((feature) => feature.checked).map((feature) => feature.name)
+    if (tabsAccess.reports.allReports == "none") {
+      report_access = []
     }
     return { tabs_access, report_access }
   }
@@ -255,53 +253,53 @@ export function ResponsibilityModal({ open, onClose, responsibility, onSave }: R
 
   // Reset form function
   const resetForm = () => {
-  try {
-    setName("")
-    setActiveCategory("reports")
-    setActiveSection("basic")
-    setErrors({})
-    setTabsAccess({
-      dashboard: false,
-      tripDashboard: false,
-      listMapView: false,
-      trail: false,
-      reports: {
-        allReports: "none",
-        scheduleReport: "none",
-      },
-      alarm: "none",
-      geofence: {
-        config: "none",
-        group: "none",
-        stats: "none",
-      },
-      userManagement: {
-        responsibilities: "none",
-        user: "none",
-      },
-      manage: {
-        entities: "none",
-        group: "none",
-        vendors: "none",
-        customer: "none",
-      },
-    })
-    const resetSections = featureSections.map((section) => ({
-      ...section,
-      features: section.features.map((feature) => ({
-        ...feature,
-        checked: false,
-      })),
-    }))
-    setFeatureSections(resetSections)
-    
-    // Show success toast
-    showSuccessToast("Form Reset", "All form fields have been reset successfully")
-  } catch (error) {
-    // Show error toast if something goes wrong
-    showErrorToast("Failed to reset form","")
+    try {
+      setName("")
+      setActiveCategory("reports")
+      setActiveSection("basic")
+      setErrors({})
+      setTabsAccess({
+        dashboard: false,
+        tripDashboard: false,
+        listMapView: false,
+        trail: false,
+        reports: {
+          allReports: "none",
+          scheduleReport: "none",
+        },
+        alarm: "none",
+        geofence: {
+          config: "none",
+          group: "none",
+          stats: "none",
+        },
+        userManagement: {
+          responsibilities: "none",
+          user: "none",
+        },
+        manage: {
+          entities: "none",
+          group: "none",
+          vendors: "none",
+          customer: "none",
+        },
+      })
+      const resetSections = featureSections.map((section) => ({
+        ...section,
+        features: section.features.map((feature) => ({
+          ...feature,
+          checked: false,
+        })),
+      }))
+      setFeatureSections(resetSections)
+
+      // Show success toast
+      showSuccessToast("Form Reset", "All form fields have been reset successfully")
+    } catch (error) {
+      // Show error toast if something goes wrong
+      showErrorToast("Failed to reset form", "")
+    }
   }
-}
 
   const handleSelectAll = (checked: boolean) => {
     setFeatureSections(
@@ -426,7 +424,7 @@ export function ResponsibilityModal({ open, onClose, responsibility, onSave }: R
 
           <div className="flex items-center justify-center min-h-screen p-4">
             <motion.div
-              className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden relative"
+              className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden relative"
               variants={modalVariants}
               initial="hidden"
               animate="visible"

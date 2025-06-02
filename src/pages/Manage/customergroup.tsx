@@ -1,10 +1,8 @@
+import type React from "react"
+import { CustomerGroupManagementPage } from "@/components/manage/customergroup/customergroup-management"
 
-const customer: React.FC = () => {
-  return(
-    <p>
-        welcome to the 
-    </p>
-  )
-};
+const CustomerGroup: React.FC = () => {
+  return <CustomerGroupManagementPage />
+}
 
-export default customer;
+export default CustomerGroup

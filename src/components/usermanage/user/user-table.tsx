@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Edit, Trash2, ChevronDown, ChevronLeft, ChevronRight, Eye, MoreVertical, ChevronUp } from "lucide-react"
+import { Edit, Trash2, ChevronDown, ChevronLeft, ChevronRight, Eye, MoreVertical, ChevronUp, CheckCircle, XCircle } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -26,12 +26,12 @@ export function UserTable({
   onPageChange = () => {},
   totalCount = 0,
 }: UserTableProps) {
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
-  const [expandedRow, setExpandedRow] = useState<string | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
+  const [expandedRow, setExpandedRow] = useState<number | null>(null)
   const [sortField, setSortField] = useState<SortField>("name")
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
 
-  const handleDeleteClick = (id: string) => {
+  const handleDeleteClick = (id: number) => {
     setDeleteConfirmId(id)
   }
 
@@ -42,7 +42,7 @@ export function UserTable({
     }
   }
 
-  const toggleRow = (id: string) => {
+  const toggleRow = (id: number) => {
     setExpandedRow(expandedRow === id ? null : id)
   }
 
@@ -182,7 +182,7 @@ export function UserTable({
                             <div>
                               <div className="text-sm font-medium text-gray-900">{user.name}</div>
                               <div className="text-sm text-gray-500">ID: {user.id}</div>
-                              <div className="text-sm text-gray-500">@{user.username}</div>
+                              <div className="text-sm text-gray-500">{user.username}</div>
                             </div>
                           </div>
                         </td>
@@ -192,6 +192,12 @@ export function UserTable({
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900 mb-1">{user.role}</div>
+                          <div className="flex items-center">
+                          {user.active ? (
+                            <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                          ) : (
+                            <XCircle className="h-4 w-4 text-red-500 mr-2" />
+                          )}
                           <Badge
                             variant={user.active ? "default" : "outline"}
                             className={
@@ -202,6 +208,7 @@ export function UserTable({
                           >
                             {user.active ? "Active" : "Inactive"}
                           </Badge>
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex flex-wrap gap-1">
@@ -222,10 +229,10 @@ export function UserTable({
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-gray-900 flex flex-wrap gap-1">
                             <Badge
                               variant="outline"
-                              className="bg-purple-50 text-purple-700 hover:bg-purple-50 border-purple-200 mr-1"
+                              className="bg-purple-50 text-purple-700 hover:bg-purple-50 border-purple-200"
                             >
                               V: {user.vehicleGroups.length}
                             </Badge>
@@ -234,6 +241,12 @@ export function UserTable({
                               className="bg-orange-50 text-orange-700 hover:bg-orange-50 border-orange-200"
                             >
                               G: {user.geofenceGroups.length}
+                            </Badge>
+                            <Badge
+                              variant="outline"
+                              className="bg-teal-50 text-teal-700 hover:bg-teal-50 border-teal-200"
+                            >
+                              CG: {user.customerGroups.length}
                             </Badge>
                           </div>
                           <div className="text-sm text-gray-500 mt-1">{user.tag}</div>
@@ -253,19 +266,25 @@ export function UserTable({
                                 className="overflow-hidden"
                               >
                                 <div className="p-3 sm:p-6 bg-slate-50 border-t border-b border-slate-200">
-                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+                                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 sm:gap-6">
                                     <div>
                                       <h3 className="text-sm sm:text-lg font-semibold text-slate-800 mb-2 sm:mb-4">
                                         User Types
                                       </h3>
                                       <div className="space-y-2">
-                                        {user.userTypes.map((type) => (
-                                          <div key={type} className="flex items-center">
-                                            <span className="text-xs sm:text-sm font-medium text-indigo-700">
-                                              • {type}
-                                            </span>
-                                          </div>
-                                        ))}
+                                        {user.userTypes.length > 0 ? (
+                                          user.userTypes.map((type) => (
+                                            <div key={type} className="flex items-center">
+                                              <span className="text-xs sm:text-sm font-medium text-indigo-700">
+                                                • {type}
+                                              </span>
+                                            </div>
+                                          ))
+                                        ) : (
+                                          <span className="text-xs sm:text-sm text-gray-500">
+                                            No user types assigned
+                                          </span>
+                                        )}
                                       </div>
                                     </div>
                                     <div>
@@ -273,13 +292,19 @@ export function UserTable({
                                         Vehicle Groups
                                       </h3>
                                       <div className="space-y-2">
-                                        {user.vehicleGroups.map((group) => (
-                                          <div key={group} className="flex items-center">
-                                            <span className="text-xs sm:text-sm font-medium text-purple-700">
-                                              • {group}
-                                            </span>
-                                          </div>
-                                        ))}
+                                        {user.vehicleGroups.length > 0 ? (
+                                          user.vehicleGroups.map((group) => (
+                                            <div key={group} className="flex items-center">
+                                              <span className="text-xs sm:text-sm font-medium text-purple-700">
+                                                • {group}
+                                              </span>
+                                            </div>
+                                          ))
+                                        ) : (
+                                          <span className="text-xs sm:text-sm text-gray-500">
+                                            No vehicle groups assigned
+                                          </span>
+                                        )}
                                       </div>
                                     </div>
                                     <div>
@@ -287,13 +312,39 @@ export function UserTable({
                                         Geofence Groups
                                       </h3>
                                       <div className="space-y-2">
-                                        {user.geofenceGroups.map((group) => (
-                                          <div key={group} className="flex items-center">
-                                            <span className="text-xs sm:text-sm font-medium text-orange-700">
-                                              • {group}
-                                            </span>
-                                          </div>
-                                        ))}
+                                        {user.geofenceGroups.length > 0 ? (
+                                          user.geofenceGroups.map((group) => (
+                                            <div key={group} className="flex items-center">
+                                              <span className="text-xs sm:text-sm font-medium text-orange-700">
+                                                • {group}
+                                              </span>
+                                            </div>
+                                          ))
+                                        ) : (
+                                          <span className="text-xs sm:text-sm text-gray-500">
+                                            No geofence groups assigned
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <h3 className="text-sm sm:text-lg font-semibold text-slate-800 mb-2 sm:mb-4">
+                                        Customer Groups
+                                      </h3>
+                                      <div className="space-y-2">
+                                        {user.customerGroups.length > 0 ? (
+                                          user.customerGroups.map((group) => (
+                                            <div key={group} className="flex items-center">
+                                              <span className="text-xs sm:text-sm font-medium text-teal-700">
+                                                • {group}
+                                              </span>
+                                            </div>
+                                          ))
+                                        ) : (
+                                          <span className="text-xs sm:text-sm text-gray-500">
+                                            No customer groups assigned
+                                          </span>
+                                        )}
                                       </div>
                                     </div>
                                   </div>

@@ -1,17 +1,17 @@
-export type User = {
-  id: string
+export interface User {
+  id: number
   name: string
-  phone: string
-  email: string
   username: string
-  password: string // Add password field
+  email: string
+  phone: string
+  password: string
   active: boolean
   role: string
-  userTypes: string[] // Multiple user types
-  vehicleGroups: string[] // Multiple vehicle groups
-  geofenceGroups: string[] // Multiple geofence groups
-  tag: string
-  avatar?: string // Optional avatar field
+  tag?: string
+  userTypes: string[]
+  vehicleGroups: string[]
+  geofenceGroups: string[]
+  customerGroups: string[]
 }
 
 export interface UserDrawerProps {
@@ -24,7 +24,7 @@ export interface UserDrawerProps {
 export interface UserTableProps {
   users: User[]
   onEdit: (user: User) => void
-  onDelete: (id: string) => void
+  onDelete: (id: number) => void
   currentPage?: number
   pageCount?: number
   onPageChange?: (page: number) => void

@@ -19,8 +19,8 @@ import {
 } from "lucide-react"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../components/ui/collapsible"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { initialUsers } from "../data/usermanage/user"
 import Logo from "../assets/Logo.png"
+import { useAuth } from "../context/AuthContext"
 
 // Define navigation items structure with nested items for dropdowns
 const navItems = [
@@ -115,6 +115,7 @@ const LogisticsSidebar: React.FC<LogisticsSidebarProps> = ({ isOpen, closeSideba
   const isMobile = useIsMobile()
   const location = useLocation()
 
+  const { user, logout } = useAuth()
   // Handle expansion logic differently for mobile and desktop
   useEffect(() => {
     if (isMobile) {
@@ -158,6 +159,11 @@ const LogisticsSidebar: React.FC<LogisticsSidebarProps> = ({ isOpen, closeSideba
   const hasActiveChild = (item: any) => {
     if (!item.hasChildren || !item.children) return false
     return item.children.some((child: any) => isActive(child.path))
+  }
+
+
+  if (!user) {
+    return null
   }
 
   return (
@@ -343,7 +349,7 @@ const LogisticsSidebar: React.FC<LogisticsSidebarProps> = ({ isOpen, closeSideba
           )}
         >
           <div className="h-8 w-8 rounded-full bg-gradient-to-r from-[#d5233b] to-red-700 flex items-center justify-center text-white shadow-md">
-            {initialUsers[0].avatar}
+            {user.username.substring(0, 2).toUpperCase()}
           </div>
           <div
             className={cn(
@@ -351,8 +357,8 @@ const LogisticsSidebar: React.FC<LogisticsSidebarProps> = ({ isOpen, closeSideba
               isExpanded || (isMobile && isOpen) ? "opacity-100 ml-2 flex-1" : "opacity-0 w-0",
             )}
           >
-            <p className="text-white text-sm font-medium truncate">{initialUsers[0].name}</p>
-            <p className="text-gray-400 text-xs truncate">{initialUsers[0].role}</p>
+            <p className="text-white text-sm font-medium truncate">{user.name}</p>
+            <p className="text-gray-400 text-xs truncate">{user.roles}</p>
           </div>
           {/* {(isExpanded || (isMobile && isOpen)) && (
             <button className="text-gray-400 hover:text-white p-1 rounded-md hover:bg-gray-600/50">

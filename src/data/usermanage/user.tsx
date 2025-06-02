@@ -1,107 +1,237 @@
+import axios from "axios"
 import type { User } from "../../types/usermanage/user"
+import { fetchGroups } from "../manage/groups"
+import { fetchRoles } from "./responsibilities"
+import { fetchGeofenceGroups } from "../geofence/ggroup"
+import { fetchCustomerGroups } from "../manage/customergroup"
 
-export const initialUsers: User[] = [
-  {
-    id: "USR001",
-    name: "John Doe",
-    phone: "9582168055",
-    email: "johndoe@example.com",
-    username: "john.doe",
-    password: "password123", // Add password
-    active: true,
-    role: "Control Tower",
-    userTypes: ["Driver", "Customer"],
-    vehicleGroups: ["Fleet A", "Fleet B"],
-    geofenceGroups: ["Zone 1", "Zone 2"],
-    tag: "VIP",
-    avatar: "JD"
-  },
-  {
-    id: "USR002",
-    name: "Jane Smith",
-    phone: "9582168056",
-    email: "janesmith@example.com",
-    username: "jane.smith",
-    password: "securepass456", // Add password
-    active: true,
-    role: "Management",
-    userTypes: ["Customer", "Consignee"],
-    vehicleGroups: ["Fleet A"],
-    geofenceGroups: ["Zone 1"],
-    tag: "Priority",
-  },
-  {
-    id: "USR003",
-    name: "Robert Johnson",
-    phone: "9582168057",
-    email: "robertjohnson@example.com",
-    username: "robert.johnson",
-    password: "mypassword789", // Add password
-    active: false,
-    role: "Ecom Monitoring Team",
-    userTypes: ["Consignor"],
-    vehicleGroups: ["Fleet C"],
-    geofenceGroups: ["Zone 3"],
-    tag: "Standard",
-  },
-  {
-    id: "USR004",
-    name: "Emily Davis",
-    phone: "9582168058",
-    email: "emilydavis@example.com",
-    username: "emily.davis",
-    password: "emily2024", // Add password
-    active: false,
-    role: "CLT",
-    userTypes: ["Attendant"],
-    vehicleGroups: ["Fleet B", "Fleet C"],
-    geofenceGroups: ["Zone 2", "Zone 3"],
-    tag: "Standard",
-  },
-  {
-    id: "USR005",
-    name: "Michael Wilson",
-    phone: "9582168059",
-    email: "michaelwilson@example.com",
-    username: "michael.wilson",
-    password: "wilson123", // Add password
-    active: false,
-    role: "TEST Role",
-    userTypes: ["Driver", "Attendant"],
-    vehicleGroups: ["Fleet A", "Fleet B", "Fleet C"],
-    geofenceGroups: ["Zone 1", "Zone 2", "Zone 3"],
-    tag: "Test",
-  },
-  {
-    id: "USR006",
-    name: "Sarah Brown",
-    phone: "9582168060",
-    email: "sarahbrown@example.com",
-    username: "sarah.brown",
-    password: "sarah456", // Add password
-    active: true,
-    role: "Management",
-    userTypes: ["Customer", "Consignee"],
-    vehicleGroups: ["Fleet A"],
-    geofenceGroups: ["Zone 1"],
-    tag: "Priority",
-  },
-  {
-    id: "USR007",
-    name: "David Miller",
-    phone: "9582168061",
-    email: "davidmiller@example.com",
-    username: "david.miller",
-    password: "david789", // Add password
-    active: true,
-    role: "Control Tower",
-    userTypes: ["Driver"],
-    vehicleGroups: ["Fleet B"],
-    geofenceGroups: ["Zone 2"],
-    tag: "VIP",
-  },
-]
+// Initial data - will be replaced with API data
+export let initialUsers: User[] = []
 
-
+// User type options
 export const userTypeOptions = ["Driver", "Customer", "Consignee", "Consignor", "Attendant"]
-export const tagOptions = ["VIP", "Priority", "Standard", "Test"]
+
+// Tag options
+// export const tagOptions = ["VIP", "Priority", "Regular", "New"]
+
+// Fetch all users from the API
+export const fetchUsers = async (): Promise<User[]> => {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/user`)
+    const users = response.data.data || []
+
+    // Transform backend data to match our frontend User interface
+    initialUsers = users.map((user: any) => ({
+      id: user.id,
+      name: user.name,
+      phone: user.phone,
+      email: user.email,
+      username: user.username,
+      password: "", // We don't receive password from backend for security
+      active: user.active,
+      role: user.roles,
+      tag: user.tag || "",
+      userTypes: user.usertypes || [],
+      vehicleGroups: user.vehiclegrp || [],
+      geofenceGroups: user.geofencegrp || [],
+      customerGroups: user.customergrp || [],
+    }))
+
+    return initialUsers
+  } catch (error) {
+    console.error("Error fetching users:", error)
+    throw error
+  }
+}
+
+// Create a new user
+export const createUser = async (user: User): Promise<User> => {
+  console.log("Creating user with data:", user)
+  try {
+    // Transform frontend User to match backend API expectations
+    
+    const userData = {
+      name: user.name,
+      phone: user.phone,
+      username: user.username,
+      email: user.email,
+      password: user.password,
+      roles: user.role,
+      tag: user.tag,
+      usertypes: user.userTypes,
+      vehiclegroup: user.vehicleGroups,
+      geofencegroup: user.geofenceGroups,
+      custgrp: user.customerGroups,
+    }
+
+    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/user`, userData)
+    console.log("Response from server:", response)
+    if (response.data && response.data.data) {
+      // Transform the response back to our User interface
+      const newUser: User = {
+        id: response.data.data.userId,
+        name: response.data.data.name,
+        phone: response.data.data.phone,
+        email: response.data.data.email,
+        username: response.data.data.username,
+        password: "", // We don't store the password in frontend
+        active: true, // New users are active by default
+        role: response.data.data.roles,
+        tag: response.data.data.tag || "",
+        userTypes: response.data.data.usertypes || [],
+        vehicleGroups: response.data.data.vehiclegrp || [],
+        geofenceGroups: response.data.data.geofencegrp || [],
+        customerGroups: response.data.data.custgrp || [],
+      }
+
+      // Update our local cache
+      initialUsers = [...initialUsers, newUser]
+
+      return newUser
+    } else {
+      throw new Error("Invalid response from server")
+    }
+  } catch (error) {
+    console.error("Error creating user:", error)
+    throw error
+  }
+}
+
+// Update an existing user
+export const updateUser = async (user: User): Promise<User> => {
+  try {
+    // Transform frontend User to match backend API expectations
+    const userData = {
+      name: user.name,
+      phone: user.phone,
+      username: user.username,
+      email: user.email,
+      roles: user.role,
+      tag: user.tag,
+      usertypes: user.userTypes,
+      vehiclegroup: user.vehicleGroups,
+      geofencegroup: user.geofenceGroups,
+      custgrp: user.customerGroups,
+      active: user.active,
+    }
+
+    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/user/${user.id}`, userData)
+
+    if (response.data && response.data.data) {
+      // Transform the response back to our User interface
+      const updatedUser: User = {
+        ...user,
+        name: response.data.data.name,
+        phone: response.data.data.phone,
+        email: response.data.data.email,
+        username: response.data.data.username,
+        role: response.data.data.roles,
+        tag: response.data.data.tag || "",
+        userTypes: response.data.data.usertypes || [],
+        vehicleGroups: response.data.data.vehiclegrp || [],
+        geofenceGroups: response.data.data.geofencegrp || [],
+        customerGroups: response.data.data.custgrp || [],
+      }
+
+      // Update our local cache
+      initialUsers = initialUsers.map((u) => (u.id === user.id ? updatedUser : u))
+
+      return updatedUser
+    } else {
+      throw new Error("Invalid response from server")
+    }
+  } catch (error) {
+    console.error("Error updating user:", error)
+    throw error
+  }
+}
+
+// Delete a user
+export const deleteUser = async (id: number): Promise<boolean> => {
+  try {
+    await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/user/${id}`)
+
+    // Update our local cache
+    initialUsers = initialUsers.filter((user) => user.id !== id)
+
+    return true
+  } catch (error) {
+    console.error("Error deleting user:", error)
+    throw error
+  }
+}
+
+// Search users
+export const searchUsers = async (query: string): Promise<User[]> => {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/user?searchTerm=${query}`)
+    const users = response.data.data || []
+
+    // Transform backend data to match our frontend User interface
+    const searchResults = users.map((user: any) => ({
+      id: user.id,
+      name: user.name,
+      phone: user.phone,
+      email: user.email,
+      username: user.username,
+      password: "", // We don't receive password from backend for security
+      active: user.active,
+      role: user.roles,
+      tag: user.tag || "",
+      userTypes: user.usertypes || [],
+      vehicleGroups: user.vehiclegrp || [],
+      geofenceGroups: user.geofencegrp || [],
+      customerGroups: user.customergrp || [],
+    }))
+
+    return searchResults
+  } catch (error) {
+    console.error("Error searching users:", error)
+    throw error
+  }
+}
+
+// Fetch vehicle groups, geofence groups, customer groups, and roles
+export const fetchUserRelatedData = async () => {
+  try {
+    // Fetch all required data in parallel
+    const [vehicleGroupsData, geofenceGroupsData, customerGroupsData, rolesData] = await Promise.all([
+      fetchGroups(),
+      fetchGeofenceGroups(),
+      fetchCustomerGroups(),
+      fetchRoles(),
+    ])
+
+    return {
+      vehicleGroups: vehicleGroupsData.map((group) => group.name),
+      geofenceGroups: geofenceGroupsData.map((group) => group.name),
+      customerGroups: customerGroupsData.map((group) => group.group_name),
+      roles: rolesData.map((role) => role.role_name),
+    }
+  } catch (error) {
+    console.error("Error fetching user related data:", error)
+    throw error
+  }
+}
+
+// Fetch geofence groups
+// export const fetchGeofenceGroups = async () => {
+//   try {
+//     const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/geofence/group`)
+//     return response.data.data || []
+//   } catch (error) {
+//     console.error("Error fetching geofence groups:", error)
+//     throw error
+//   }
+// }
+
+// // Fetch customer groups
+// export const fetchCustomerGroups = async () => {
+//   try {
+//     const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/customer-group`)
+//     return response.data.data || []
+//   } catch (error) {
+//     console.error("Error fetching customer groups:", error)
+//     throw error
+//   }
+// }

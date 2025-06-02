@@ -114,7 +114,7 @@ export function EntityDrawer({ open, onClose, entity, onSave, availableVendors }
 
           <div className="flex items-center justify-center min-h-screen p-4">
             <motion.div
-              className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden relative"
+              className="bg-white rounded-xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-hidden relative"
               variants={modalVariants}
               initial="hidden"
               animate="visible"

@@ -1,4 +1,30 @@
 // Sample data for geofence groups
+
+import axios from "axios"
+
+export interface GeofenceGroup {
+  id: string | number
+  name: string
+  geo_group?: string
+  geofenceIds?: string[]
+  createdAt?: string
+  updatedAt?: string
+}
+
+// export const geofenceGroups = ["Zone 1", "Zone 2", "Zone 3", "MLL Chep", "Flex"]
+
+export const fetchGeofenceGroups = async (): Promise<GeofenceGroup[]> => {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/geofence/all`)
+    const groups = response.data.data || []
+
+    return groups
+  } catch (error) {
+    console.error("Error fetching geofence groups:", error)
+    throw error
+  }
+}
+
 export const initialGeofenceGroups = [
   {
     id: "GG001",

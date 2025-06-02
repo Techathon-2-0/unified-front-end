@@ -41,7 +41,7 @@ export default function GeofenceConfiguration() {
   const itemsPerPage = 5
   const [sortField, setSortField] = useState<"name" | "type" | "location">("name")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
-  const { showSuccessToast, showErrorToast, Toaster } = useToast({ position: "top-right",});
+  const { showSuccessToast, showErrorToast, Toaster } = useToast({ position: "top-right", });
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   const handleSort = (field: "name" | "type" | "location") => {
@@ -73,7 +73,7 @@ export default function GeofenceConfiguration() {
       filtered = filtered.filter(
         (geofence) =>
           geofence.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          geofence.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          //geofence.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
           geofence.tag?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           geofence.type.toLowerCase().includes(searchTerm.toLowerCase()),
       )
@@ -98,10 +98,10 @@ export default function GeofenceConfiguration() {
           aValue = a.type.toLowerCase()
           bValue = b.type.toLowerCase()
           break
-        case "location":
-          aValue = a.location.toLowerCase()
-          bValue = b.location.toLowerCase()
-          break
+        // case "location":
+        //   aValue = a.location.toLowerCase()
+        //   bValue = b.location.toLowerCase()
+        //   break
         default:
           aValue = a.name.toLowerCase()
           bValue = b.name.toLowerCase()
@@ -201,12 +201,12 @@ export default function GeofenceConfiguration() {
       type: "circle",
       radius: 500,
       coordinates: { lat: 19.076, lng: 72.8777 },
-      location: "",
+      //location: "",
       locationId: "",
       tag: "",
-      geozoneType: "",
+      //geozoneType: "",
+      //shipmentId: "",
       stopType: "",
-      shipmentId: "",
     })
     setIsCreatingNew(true)
     setShowForm(true)
@@ -411,7 +411,7 @@ export default function GeofenceConfiguration() {
                     </TableHead>
                     <TableHead className="px-6 py-3 text-left text-sm font-medium text-gray-500">Radius (m)</TableHead>
                     <TableHead className="px-6 py-3 text-left text-sm font-medium text-gray-500">Tag</TableHead>
-                    <TableHead
+                    {/* <TableHead
                       className="px-6 py-3 text-left text-sm font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
                       onClick={() => handleSort("location")}
                     >
@@ -419,17 +419,17 @@ export default function GeofenceConfiguration() {
                         Location
                         {getSortArrow("location")}
                       </div>
-                    </TableHead>
-                    <TableHead className="px-6 py-3 text-left text-sm font-medium text-gray-500">
+                    </TableHead> */}
+                    {/* <TableHead className="px-6 py-3 text-left text-sm font-medium text-gray-500">
                       Geozone Type
-                    </TableHead>
+                    </TableHead> */}
                     <TableHead className="px-6 py-3 text-left text-sm font-medium text-gray-500">Location Id</TableHead>
                     <TableHead className="px-6 py-3 text-left text-sm font-medium text-gray-500">Stop Type</TableHead>
-                    <TableHead className="px-6 py-3 text-left text-sm font-medium text-gray-500">Shipment Id</TableHead>
+                    {/* <TableHead className="px-6 py-3 text-left text-sm font-medium text-gray-500">Shipment Id</TableHead> */}
                     <TableHead className="px-6 py-3 text-left text-sm font-medium text-gray-500">Created At</TableHead>
                     <TableHead className="px-6 py-3 text-left text-sm font-medium text-gray-500">Updated At</TableHead>
-                    <TableHead className="px-6 py-3 text-left text-sm font-medium text-gray-500">Created By</TableHead>
-                    <TableHead className="px-6 py-3 text-left text-sm font-medium text-gray-500">Updated By</TableHead>
+                    {/* <TableHead className="px-6 py-3 text-left text-sm font-medium text-gray-500">Created By</TableHead>
+                    <TableHead className="px-6 py-3 text-left text-sm font-medium text-gray-500">Updated By</TableHead> */}
                     <TableHead className="px-6 py-3 text-left text-sm font-medium text-gray-500">Status</TableHead>
                     <TableHead className="px-6 py-3 text-left text-sm font-medium text-gray-500">Actions</TableHead>
                   </TableRow>
@@ -476,19 +476,19 @@ export default function GeofenceConfiguration() {
                             {geofence.type === "circle" ? geofence.radius : "-"}
                           </TableCell>
                           <TableCell className="px-6 py-4 whitespace-nowrap">{geofence.tag || "-"}</TableCell>
-                          <TableCell className="px-6 py-4 whitespace-nowrap">{geofence.location}</TableCell>
-                          <TableCell className="px-6 py-4 whitespace-nowrap">{geofence.geozoneType || "-"}</TableCell>
+                          {/* <TableCell className="px-6 py-4 whitespace-nowrap">{geofence.location}</TableCell>
+                          <TableCell className="px-6 py-4 whitespace-nowrap">{geofence.geozoneType || "-"}</TableCell> */}
                           <TableCell className="px-6 py-4 whitespace-nowrap">{geofence.locationId || "-"}</TableCell>
                           <TableCell className="px-6 py-4 whitespace-nowrap">{geofence.stopType || "-"}</TableCell>
-                          <TableCell className="px-6 py-4 whitespace-nowrap">{geofence.shipmentId || "-"}</TableCell>
+                          {/* <TableCell className="px-6 py-4 whitespace-nowrap">{geofence.shipmentId || "-"}</TableCell> */}
                           <TableCell className="px-6 py-4 whitespace-nowrap">
                             {formatDateTime(geofence.createdAt || "")}
                           </TableCell>
                           <TableCell className="px-6 py-4 whitespace-nowrap">
                             {formatDateTime(geofence.updatedAt || "")}
                           </TableCell>
-                          <TableCell className="px-6 py-4 whitespace-nowrap">{geofence.createdBy || "Admin"}</TableCell>
-                          <TableCell className="px-6 py-4 whitespace-nowrap">{geofence.updatedBy || "Admin"}</TableCell>
+                          {/* <TableCell className="px-6 py-4 whitespace-nowrap">{geofence.createdBy || "Admin"}</TableCell>
+                          <TableCell className="px-6 py-4 whitespace-nowrap">{geofence.updatedBy || "Admin"}</TableCell> */}
                           <TableCell className="px-6 py-4 whitespace-nowrap">
                             <Badge className="bg-green-100 text-green-800 border-green-200">Active</Badge>
                           </TableCell>
@@ -617,13 +617,13 @@ export default function GeofenceConfiguration() {
                                   {geofence.type}
                                 </Badge>
                               </div>
-                              <p className="text-xs text-gray-600 mb-1">{geofence.location}</p>
+                              {/* <p className="text-xs text-gray-600 mb-1">{geofence.location}</p> */}
                               <div className="flex items-center space-x-4 text-xs text-gray-500">
                                 {geofence.type === "circle" && <span>📍 Radius: {geofence.radius}m</span>}
                                 {geofence.type === "polygon" && (
                                   <span>📐 Points: {geofence.polygonPoints?.length || 0}</span>
                                 )}
-                                {geofence.geozoneType && <span>🏷️ {geofence.geozoneType}</span>}
+                                {geofence.stopType && <span>🏷️ {geofence.stopType}</span>}
                               </div>
                             </div>
                             <div className="text-right">

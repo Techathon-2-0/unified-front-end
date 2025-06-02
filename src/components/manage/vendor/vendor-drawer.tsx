@@ -98,7 +98,7 @@ export function VendorDrawer({ open, onClose, vendor, onSave }: VendorDrawerProp
 
           <div className="flex items-center justify-center min-h-screen p-4">
             <motion.div
-              className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden relative"
+              className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden relative"
               variants={modalVariants}
               initial="hidden"
               animate="visible"

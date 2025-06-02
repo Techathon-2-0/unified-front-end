@@ -1,7 +1,7 @@
 import { useMemo, useState, useRef, useEffect } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import Logo from "../assets/BigLogo.png"
-import { Bell, User, Settings, Edit, KeyRound, Mail, ChevronDown, Menu, X, LogOut } from "lucide-react"
+import { Bell, User, ChevronDown, Menu, X, LogOut } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,14 +9,11 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
 } from "./ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { mockAlarms } from "../data/alarm/aconfig"
-import { initialUsers } from "../data/usermanage/user"
+import { useAuth } from "../context/AuthContext"
 
 interface NavbarProps {
   toggleSidebar: () => void
@@ -29,9 +26,7 @@ function Navbar({ toggleSidebar }: NavbarProps) {
   const [showNotifications, setShowNotifications] = useState(false)
   const notificationRef = useRef<HTMLDivElement>(null)
   const bellRef = useRef<HTMLButtonElement>(null)
-
-  // Get current user (first user from mock data)
-  const currentUser = initialUsers[0]
+  const { user, logout } = useAuth()
 
   // Generate page title from current path
   const pageTitle = useMemo(() => {
@@ -49,19 +44,6 @@ function Navbar({ toggleSidebar }: NavbarProps) {
         .join(" ") || "Dashboard"
     )
   }, [location])
-
-  // Generate gradient color based on page title
-  const gradientColor = useMemo(() => {
-    const hash = pageTitle.split("").reduce((acc, char) => {
-      return char.charCodeAt(0) + ((acc << 5) - acc)
-    }, 0)
-
-    const baseHue = Math.abs(hash % 40)
-    const h1 = (360 + baseHue - 10) % 360
-    const h2 = (h1 + 10) % 360
-
-    return `linear-gradient(to right, hsl(${h1}, 80%, 55%), hsl(${h2}, 80%, 60%))`
-  }, [pageTitle])
 
   // Close notifications when clicking outside
   useEffect(() => {
@@ -89,8 +71,11 @@ function Navbar({ toggleSidebar }: NavbarProps) {
   }
 
   const handleLogout = () => {
-    // Add logout logic here
-    console.log("Logging out...")
+    logout()
+  }
+
+  if (!user) {
+    return null
   }
 
   return (
@@ -108,13 +93,12 @@ function Navbar({ toggleSidebar }: NavbarProps) {
           </button>
 
           <div className="flex items-center">
-            <img src={Logo} alt="Logo" className="h-8 w-auto" />
+            <img src={Logo || "/placeholder.svg"} alt="Logo" className="h-8 w-auto" />
 
             <div className="ml-5 hidden sm:flex items-center">
               <div className="font-bold text-xl text-black">{pageTitle}</div>
             </div>
           </div>
-
         </div>
 
         <div className="flex items-center space-x-4">
@@ -272,7 +256,7 @@ function Navbar({ toggleSidebar }: NavbarProps) {
             <DropdownMenuTrigger className="focus:outline-none group">
               <div className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                 <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#d5233b] to-red-700 flex items-center justify-center text-white font-medium shadow-md transition-transform group-hover:scale-105">
-                  {currentUser.avatar || currentUser.name.charAt(0)}
+                  {user.username.substring(0, 2).toUpperCase()}
                 </div>
                 <ChevronDown className="w-4 h-4 text-gray-500 transition-transform group-data-[state=open]:rotate-180 hidden sm:block" />
               </div>
@@ -283,25 +267,26 @@ function Navbar({ toggleSidebar }: NavbarProps) {
                 <div className="h-20 bg-gradient-to-r from-[#d5233b] to-red-700"></div>
                 <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2">
                   <div className="h-16 w-16 rounded-full bg-gradient-to-br from-[#d5233b] to-red-700 flex items-center justify-center text-white text-xl font-medium border-4 border-white shadow-lg">
-                    {currentUser.avatar || currentUser.name.charAt(0)}
+                    {user.username.substring(0, 2).toUpperCase()}
                   </div>
                 </div>
               </div>
 
               <div className="pt-10 pb-4 px-4 text-center border-b border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{currentUser.name}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{currentUser.email}</p>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{user.name}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
                 <div className="flex items-center justify-center gap-2 mt-2">
                   <span
-                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${currentUser.active
+                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      user.active
                         ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
                         : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                      }`}
+                    }`}
                   >
-                    {currentUser.active ? "Active" : "Inactive"}
+                    {user.active ? "Active" : "Inactive"}
                   </span>
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-                    {currentUser.role}
+                    {user.roles}
                   </span>
                 </div>
               </div>
@@ -314,27 +299,6 @@ function Navbar({ toggleSidebar }: NavbarProps) {
                   <User className="mr-3 h-4 w-4 text-gray-600 dark:text-gray-400" />
                   <span className="font-medium">View Profile</span>
                 </DropdownMenuItem>
-
-                {/* <DropdownMenuSub>
-                  <DropdownMenuSubTrigger className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <Settings className="mr-3 h-4 w-4 text-gray-600 dark:text-gray-400" />
-                    <span className="font-medium">Account Settings</span>
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="w-52 shadow-lg">
-                    <DropdownMenuItem className="cursor-pointer">
-                      <Edit className="mr-3 h-4 w-4 text-gray-600" />
-                      <span>Edit Username</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="cursor-pointer">
-                      <Mail className="mr-3 h-4 w-4 text-gray-600" />
-                      <span>Edit Email</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="cursor-pointer">
-                      <KeyRound className="mr-3 h-4 w-4 text-gray-600" />
-                      <span>Change Password</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub> */}
               </DropdownMenuGroup>
 
               <DropdownMenuSeparator />

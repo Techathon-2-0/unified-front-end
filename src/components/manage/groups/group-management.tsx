@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { motion } from "framer-motion"
 import { PlusCircle, Search } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -19,7 +19,21 @@ export function GroupManagementPage() {
   const [isLoading, setIsLoading] = useState(true)
   const itemsPerPage = 5
 
+  // Create stable toast functions that won't change on re-renders
   const { showSuccessToast, showErrorToast, Toaster } = useToast({ position: "top-right" })
+
+  // Use refs to store the latest toast functions to prevent stale closures
+  const toastRef = useRef({ showSuccessToast, showErrorToast })
+  toastRef.current = { showSuccessToast, showErrorToast }
+
+  // Stable toast functions that won't cause re-renders
+  const stableShowSuccessToast = useCallback((title: string, description: string) => {
+    toastRef.current.showSuccessToast(title, description)
+  }, [])
+
+  const stableShowErrorToast = useCallback((title: string, description: string) => {
+    toastRef.current.showErrorToast(title, description)
+  }, [])
 
   // Load groups on component mount
   useEffect(() => {
@@ -32,7 +46,7 @@ export function GroupManagementPage() {
       const groupsData = await fetchGroups()
       setGroups(groupsData)
     } catch (error) {
-      showErrorToast("Failed to load groups", "Please try again later.")
+      stableShowErrorToast("Failed to load groups", "Please try again later.")
     } finally {
       setIsLoading(false)
     }
@@ -47,7 +61,7 @@ export function GroupManagementPage() {
           setGroups(searchResults)
           setCurrentPage(1)
         } catch (error) {
-          showErrorToast("Search failed", "Please try again.")
+          stableShowErrorToast("Search failed", "Please try again.")
         }
       } else {
         loadGroups()
@@ -87,7 +101,11 @@ export function GroupManagementPage() {
           entityIds: group.entityIds,
         })
         setGroups(groups.map((g) => (g.id === updatedGroup.id ? updatedGroup : g)))
-        showSuccessToast("Group updated", `${group.name} has been updated successfully.`)
+
+        // Use setTimeout to ensure toast shows after state update
+        setTimeout(() => {
+          stableShowSuccessToast("Group updated", `${group.name} has been updated successfully.`)
+        }, 0)
       } else {
         // Create new group
         const newGroup = await createGroup({
@@ -97,12 +115,18 @@ export function GroupManagementPage() {
 
         // Refresh the entire groups list to ensure we have complete data
         await loadGroups()
-        showSuccessToast("Group created", `${group.name} has been created successfully.`)
+
+        // Use setTimeout to ensure toast shows after state update
+        setTimeout(() => {
+          stableShowSuccessToast("Group created", `${group.name} has been created successfully.`)
+        }, 0)
       }
       setIsDrawerOpen(false)
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || "An error occurred"
-      showErrorToast("Operation failed", errorMessage)
+      setTimeout(() => {
+        stableShowErrorToast("Operation failed", errorMessage)
+      }, 0)
     }
   }
 
@@ -110,10 +134,16 @@ export function GroupManagementPage() {
     try {
       await deleteGroup(id)
       setGroups(groups.filter((g) => g.id !== id))
-      showSuccessToast("Group deleted", "The group has been deleted successfully.")
+
+      // Use setTimeout to ensure toast shows after state update
+      setTimeout(() => {
+        stableShowSuccessToast("Group deleted", "The group has been deleted successfully.")
+      }, 0)
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || "Failed to delete group"
-      showErrorToast("Delete failed", errorMessage)
+      setTimeout(() => {
+        stableShowErrorToast("Delete failed", errorMessage)
+      }, 0)
     }
   }
 

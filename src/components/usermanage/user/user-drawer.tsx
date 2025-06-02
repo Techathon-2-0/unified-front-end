@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Check, X } from "lucide-react"
+import { Check, X, XCircle } from "lucide-react"
 import type { User } from "../../../types/usermanage/user"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -8,11 +8,12 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { UserDrawerProps } from "../../../types/usermanage/user"
-import { roles } from "../../../data/usermanage/responsibilities"
-import { vehicleGroups } from "../../../data/manage/vehiclegroups"
-import { geofenceGroups } from "../../../data/geofence/ggroup"
-import { userTypeOptions, tagOptions } from "../../../data/usermanage/user"
+import { fetchRoles } from "../../../data/usermanage/responsibilities"
+import { fetchGroups } from "../../../data/manage/groups"
+import { userTypeOptions } from "../../../data/usermanage/user"
 import { useToast } from "@/hooks/use-toast"
+import { fetchGeofenceGroups } from "../../../data/geofence/ggroup"
+import { fetchCustomerGroups } from "../../../data/manage/customergroup"
 
 export function UserDrawer({ open, onClose, user, onSave }: UserDrawerProps) {
   const [name, setName] = useState(user?.name || "")
@@ -26,24 +27,74 @@ export function UserDrawer({ open, onClose, user, onSave }: UserDrawerProps) {
   const [selectedUserTypes, setSelectedUserTypes] = useState<string[]>(user?.userTypes || [])
   const [selectedVehicleGroups, setSelectedVehicleGroups] = useState<string[]>(user?.vehicleGroups || [])
   const [selectedGeofenceGroups, setSelectedGeofenceGroups] = useState<string[]>(user?.geofenceGroups || [])
+  const [selectedCustomerGroups, setSelectedCustomerGroups] = useState<string[]>(user?.customerGroups || [])
   const [tag, setTag] = useState(user?.tag || "")
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [activeSection, setActiveSection] = useState<string>("basic")
-  const { showSuccessToast, showErrorToast, Toaster } = useToast({ position: "top-right",});
+  const { showSuccessToast, showErrorToast, Toaster } = useToast({ position: "top-right" })
 
   const [userTypeSearch, setUserTypeSearch] = useState("")
   const [vehicleGroupSearch, setVehicleGroupSearch] = useState("")
   const [geofenceGroupSearch, setGeofenceGroupSearch] = useState("")
+  const [customerGroupSearch, setCustomerGroupSearch] = useState("")
+
+  const [roles, setRoles] = useState<string[]>([])
+  const [vehicleGroups, setVehicleGroups] = useState<string[]>([])
+  const [geofenceGroups, setGeofenceGroups] = useState<string[]>([])
+  const [customerGroups, setCustomerGroups] = useState<string[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+
+  // Load all related data when drawer opens
+  useEffect(() => {
+    if (open) {
+      loadRelatedData()
+    }
+  }, [open])
+
+  const loadRelatedData = async () => {
+    try {
+      setIsLoading(true)
+
+      // Load roles
+      const rolesData = await fetchRoles()
+      setRoles(rolesData.map((r) => r.role_name))
+
+      // Load vehicle groups
+      const vehicleGroupsData = await fetchGroups()
+      setVehicleGroups(vehicleGroupsData.map((g) => g.name))
+
+      // Load geofence groups
+      const geofenceGroupsData = await fetchGeofenceGroups()
+      setGeofenceGroups(
+        geofenceGroupsData
+          .map((g) => g.name || g.geo_group)
+          .filter((name): name is string => name != null)
+      );
+
+      // Load customer groups
+      const customerGroupsData = await fetchCustomerGroups()
+      setCustomerGroups(customerGroupsData.map((g) => g.group_name))
+    } catch (error) {
+      showErrorToast("Error", "Failed to load data. Please try again.")
+      console.error("Failed to load related data:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   // Filtered arrays based on search
-  const filteredUserTypes = userTypeOptions.filter((type) => type.toLowerCase().includes(userTypeSearch.toLowerCase()))
+  const filteredUserTypes = userTypeOptions?.filter((type) => type.toLowerCase().includes(userTypeSearch?.toLowerCase()))
 
-  const filteredVehicleGroups = vehicleGroups.filter((group) =>
-    group.toLowerCase().includes(vehicleGroupSearch.toLowerCase()),
+  const filteredVehicleGroups = vehicleGroups?.filter((group) =>
+    group?.toLowerCase().includes(vehicleGroupSearch?.toLowerCase()),
   )
 
-  const filteredGeofenceGroups = geofenceGroups.filter((group) =>
-    group.toLowerCase().includes(geofenceGroupSearch.toLowerCase()),
+  const filteredGeofenceGroups = geofenceGroups?.filter((group) =>
+    group?.toLowerCase().includes(geofenceGroupSearch?.toLowerCase()),
+  )
+
+  const filteredCustomerGroups = customerGroups?.filter((group) =>
+    group?.toLowerCase().includes(customerGroupSearch?.toLowerCase()),
   )
 
   // Reset form when user changes
@@ -59,12 +110,14 @@ export function UserDrawer({ open, onClose, user, onSave }: UserDrawerProps) {
       setSelectedUserTypes(user?.userTypes || [])
       setSelectedVehicleGroups(user?.vehicleGroups || [])
       setSelectedGeofenceGroups(user?.geofenceGroups || [])
+      setSelectedCustomerGroups(user?.customerGroups || [])
       setTag(user?.tag || "")
       setErrors({})
       setActiveSection("basic")
       setUserTypeSearch("")
       setVehicleGroupSearch("")
       setGeofenceGroupSearch("")
+      setCustomerGroupSearch("")
       setShowPassword(false)
     }
   }, [user, open])
@@ -75,9 +128,15 @@ export function UserDrawer({ open, onClose, user, onSave }: UserDrawerProps) {
 
     if (!name.trim()) newErrors.name = "Name is required"
     if (!phone.trim()) newErrors.phone = "Phone is required"
-    if (!email.trim()) newErrors.email = "Email is required"
+    if (!email.trim()) {
+      newErrors.email = "Email is required"
+    } else if (!validateEmail(email)) {
+      newErrors.email = "Invalid email format"
+      showErrorToast("Invalid Email", "Please enter a valid email address (e.g., user@example.com)")
+      return
+    }
     if (!username.trim()) newErrors.username = "Username is required"
-    if (!password.trim()) newErrors.password = "Password is required"
+    if (!user && !password.trim()) newErrors.password = "Password is required"
     if (!role) newErrors.role = "Role is required"
 
     if (Object.keys(newErrors).length > 0) {
@@ -86,7 +145,7 @@ export function UserDrawer({ open, onClose, user, onSave }: UserDrawerProps) {
     }
 
     const updatedUser: User = {
-      id: user?.id || `USR${String(Date.now()).slice(-3)}`,
+      id: user?.id || 0, // Backend will generate ID
       name,
       phone,
       email,
@@ -97,10 +156,16 @@ export function UserDrawer({ open, onClose, user, onSave }: UserDrawerProps) {
       userTypes: selectedUserTypes,
       vehicleGroups: selectedVehicleGroups,
       geofenceGroups: selectedGeofenceGroups,
+      customerGroups: selectedCustomerGroups,
       tag,
     }
 
     onSave(updatedUser)
+  }
+
+  const validateEmail = (email: string) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return re.test(email)
   }
 
   const handleUserTypeChange = (userType: string, checked: boolean) => {
@@ -127,13 +192,22 @@ export function UserDrawer({ open, onClose, user, onSave }: UserDrawerProps) {
     }
   }
 
+  const handleCustomerGroupChange = (group: string, checked: boolean) => {
+    if (checked) {
+      setSelectedCustomerGroups([...selectedCustomerGroups, group])
+    } else {
+      setSelectedCustomerGroups(selectedCustomerGroups.filter((g) => g !== group))
+    }
+  }
+
   const isFormValid = () => {
     return (
       name.trim() !== "" &&
       phone.trim() !== "" &&
       email.trim() !== "" &&
+      //validateEmail(email) &&
       username.trim() !== "" &&
-      password.trim() !== "" &&
+      (user || password.trim() !== "") &&
       role !== ""
     )
   }
@@ -191,7 +265,7 @@ export function UserDrawer({ open, onClose, user, onSave }: UserDrawerProps) {
 
           <div className="flex items-center justify-center min-h-screen p-4">
             <motion.div
-              className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden relative"
+              className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden relative"
               variants={modalVariants}
               initial="hidden"
               animate="visible"
@@ -218,11 +292,10 @@ export function UserDrawer({ open, onClose, user, onSave }: UserDrawerProps) {
 
               <div className="flex border-b border-gray-200">
                 <button
-                  className={`px-6 py-3 text-sm font-medium transition-colors relative ${
-                    activeSection === "basic"
-                      ? "text-black border-b-2 border-black"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
+                  className={`px-6 py-3 text-sm font-medium transition-colors relative ${activeSection === "basic"
+                    ? "text-black border-b-2 border-black"
+                    : "text-gray-500 hover:text-gray-700"
+                    }`}
                   onClick={() => setActiveSection("basic")}
                 >
                   Basic Details
@@ -231,11 +304,10 @@ export function UserDrawer({ open, onClose, user, onSave }: UserDrawerProps) {
                   ) : null}
                 </button>
                 <button
-                  className={`px-6 py-3 text-sm font-medium transition-colors ${
-                    activeSection === "permissions"
-                      ? "text-black border-b-2 border-black"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
+                  className={`px-6 py-3 text-sm font-medium transition-colors ${activeSection === "permissions"
+                    ? "text-black border-b-2 border-black"
+                    : "text-gray-500 hover:text-gray-700"
+                    }`}
                   onClick={() => setActiveSection("permissions")}
                 >
                   Permissions & Groups
@@ -308,57 +380,70 @@ export function UserDrawer({ open, onClose, user, onSave }: UserDrawerProps) {
 
                     <div>
                       <Label htmlFor="password" className="text-sm font-medium text-gray-700 mb-1 flex items-center">
-                        Password <span className="text-red-500 ml-1">*</span>
+                        Password {!user && <span className="text-red-500 ml-1">*</span>}
+                        {user && <span className="text-gray-500 text-xs ml-2">(Restricted during update)</span>}
                       </Label>
-                      <div className="relative">
+                      <div className="relative group">
                         <Input
                           id="password"
                           type={showPassword ? "text" : "password"}
                           value={password}
                           onChange={(e) => {
-                            setPassword(e.target.value)
-                            if (errors.password) {
-                              setErrors((prev) => {
-                                const newErrors = { ...prev }
-                                delete newErrors.password
-                                return newErrors
-                              })
+                            if (!user) {
+                              setPassword(e.target.value)
+                              if (errors.password) {
+                                setErrors((prev) => {
+                                  const newErrors = { ...prev }
+                                  delete newErrors.password
+                                  return newErrors
+                                })
+                              }
                             }
                           }}
-                          placeholder="Enter password"
-                          className={errors.password ? "border-red-500 ring-1 ring-red-500 pr-10" : "pr-10"}
+                          placeholder={user ? "Password updates are restricted" : "Enter password"}
+                          className={`${errors.password ? "border-red-500 ring-1 ring-red-500 pr-10" : "pr-10"} ${user ? "cursor-not-allowed bg-gray-100" : ""
+                            }`}
+                          disabled={!!user}
+                          style={{ cursor: user ? "not-allowed" : "text" }}
                         />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                        >
-                          {showPassword ? (
-                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
-                              />
-                            </svg>
-                          ) : (
-                            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                              />
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                              />
-                            </svg>
-                          )}
-                        </button>
+                        {!user && (
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                          >
+                            {showPassword ? (
+                              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+                                />
+                              </svg>
+                            ) : (
+                              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                />
+                              </svg>
+                            )}
+                          </button>
+                        )}
+                        {user && (
+                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <XCircle className="h-5 w-5 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                          </div>
+                        )}
                       </div>
                       {errors.password && (
                         <p className="mt-1.5 text-sm text-red-500 flex items-center">
@@ -442,7 +527,9 @@ export function UserDrawer({ open, onClose, user, onSave }: UserDrawerProps) {
                             }
                           }}
                         >
-                          <SelectTrigger className={`w-full ${errors.role ? "border-red-500 ring-1 ring-red-500" : ""}`}>
+                          <SelectTrigger
+                            className={`w-full ${errors.role ? "border-red-500 ring-1 ring-red-500" : ""}`}
+                          >
                             <SelectValue placeholder="Select Role" />
                           </SelectTrigger>
                           <SelectContent>
@@ -464,18 +551,13 @@ export function UserDrawer({ open, onClose, user, onSave }: UserDrawerProps) {
                         <Label htmlFor="tag" className="text-sm font-medium text-gray-700 mb-1">
                           Tag
                         </Label>
-                        <Select value={tag} onValueChange={setTag}>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select Tag" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {tagOptions.map((tagOption) => (
-                              <SelectItem key={tagOption} value={tagOption}>
-                                {tagOption}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Input
+                          id="tag"
+                          value={tag}
+                          onChange={(e) => setTag(e.target.value)}
+                          placeholder="Enter tag (e.g. VIP, Priority)"
+                          className="w-full"
+                        />
                       </div>
 
                       <div>
@@ -599,9 +681,40 @@ export function UserDrawer({ open, onClose, user, onSave }: UserDrawerProps) {
                       </ScrollArea>
                     </div>
 
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Customer Groups</h3>
+                      <div className="mb-3">
+                        <Input
+                          placeholder="Search customer groups..."
+                          value={customerGroupSearch}
+                          onChange={(e) => setCustomerGroupSearch(e.target.value)}
+                          className="w-full"
+                        />
+                      </div>
+                      <ScrollArea className="h-40">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {filteredCustomerGroups.map((group) => (
+                            <div
+                              key={group}
+                              className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
+                            >
+                              <Checkbox
+                                id={`customerGroup-${group}`}
+                                checked={selectedCustomerGroups.includes(group)}
+                                onCheckedChange={(checked) => handleCustomerGroupChange(group, checked === true)}
+                              />
+                              <Label htmlFor={`customerGroup-${group}`} className="text-sm font-medium cursor-pointer">
+                                {group}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </div>
+
                     <div className="bg-gray-50 rounded-lg p-4">
                       <h3 className="text-sm font-medium text-gray-700 mb-2">Selection Summary</h3>
-                      <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div className="grid grid-cols-4 gap-4 text-sm">
                         <div>
                           <span className="text-gray-500">User Types:</span>
                           <span className="ml-2 font-medium text-black">{selectedUserTypes.length}</span>
@@ -614,6 +727,10 @@ export function UserDrawer({ open, onClose, user, onSave }: UserDrawerProps) {
                           <span className="text-gray-500">Geofence Groups:</span>
                           <span className="ml-2 font-medium text-black">{selectedGeofenceGroups.length}</span>
                         </div>
+                        <div>
+                          <span className="text-gray-500">Customer Groups:</span>
+                          <span className="ml-2 font-medium text-black">{selectedCustomerGroups.length}</span>
+                        </div>
                       </div>
                     </div>
                   </motion.div>
@@ -624,17 +741,18 @@ export function UserDrawer({ open, onClose, user, onSave }: UserDrawerProps) {
                 <button
                   type="button"
                   onClick={() => {
-                    setName("")
-                    setPhone("")
-                    setEmail("")
-                    setUsername("")
-                    setPassword("")
-                    setActive(false)
-                    setRole("")
-                    setSelectedUserTypes([])
-                    setSelectedVehicleGroups([])
-                    setSelectedGeofenceGroups([])
-                    setTag("")
+                    setName(user?.name || "")
+                    setPhone(user?.phone || "")
+                    setEmail(user?.email || "")
+                    setUsername(user?.username || "")
+                    setPassword(user?.password || "")
+                    setActive(user?.active || false)
+                    setRole(user?.role || "")
+                    setSelectedUserTypes(user?.userTypes || [])
+                    setSelectedVehicleGroups(user?.vehicleGroups || [])
+                    setSelectedGeofenceGroups(user?.geofenceGroups || [])
+                    setSelectedCustomerGroups(user?.customerGroups || [])
+                    setTag(user?.tag || "")
                     setErrors({})
                     setShowPassword(false)
 

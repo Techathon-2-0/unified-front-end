@@ -23,15 +23,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { useToast } from "@/hooks/use-toast"
-import { initialUsers } from "../../data/usermanage/user"
-import type { User as UserType } from "../../types/usermanage/user"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { useAuth } from "../../context/AuthContext"
 
 export function ProfilePage() {
-  const [user, setUser] = useState<UserType>(initialUsers[0])
-  const [isEditingUsername, setIsEditingUsername] = useState(false)
+  const { user, updatePassword } = useAuth()
   const [isEditingPassword, setIsEditingPassword] = useState(false)
-  const [editUsername, setEditUsername] = useState(user.username)
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -39,41 +37,14 @@ export function ProfilePage() {
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isLoading, setIsLoading] = useState(false)
 
-  const { showSuccessToast, showErrorToast, Toaster } = useToast({ position: "top-right",});
-
-  const handleUsernameEdit = () => {
-    setIsEditingUsername(true)
-    setEditUsername(user.username)
-    setErrors({})
-  }
-
-  const handleUsernameSave = () => {
-    const newErrors: Record<string, string> = {}
-
-    if (!editUsername.trim()) {
-      newErrors.username = "Username is required"
-    } else if (editUsername.length < 3) {
-      newErrors.username = "Username must be at least 3 characters"
-    } else if (!/^[a-zA-Z0-9._-]+$/.test(editUsername)) {
-      newErrors.username = "Username can only contain letters, numbers, dots, hyphens, and underscores"
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
-      return
-    }
-
-    setUser({ ...user, username: editUsername })
-    setIsEditingUsername(false)
-    setErrors({})
-    showSuccessToast("Username updated", "Your username has been updated successfully.")
-  }
-
-  const handleUsernameCancel = () => {
-    setIsEditingUsername(false)
-    setEditUsername(user.username)
-    setErrors({})
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#d5233b]"></div>
+      </div>
+    )
   }
 
   const handlePasswordEdit = () => {
@@ -84,13 +55,11 @@ export function ProfilePage() {
     setErrors({})
   }
 
-  const handlePasswordSave = () => {
+  const handlePasswordSave = async () => {
     const newErrors: Record<string, string> = {}
 
     if (!currentPassword) {
       newErrors.currentPassword = "Current password is required"
-    } else if (currentPassword !== user.password) {
-      newErrors.currentPassword = "Current password is incorrect"
     }
 
     if (!newPassword) {
@@ -110,13 +79,21 @@ export function ProfilePage() {
       return
     }
 
-    setUser({ ...user, password: newPassword })
-    setIsEditingPassword(false)
-    setCurrentPassword("")
-    setNewPassword("")
-    setConfirmPassword("")
-    setErrors({})
-    showSuccessToast("Password updated", "Your password has been updated successfully.")
+    setIsLoading(true)
+    try {
+      const success = await updatePassword(currentPassword, newPassword)
+      if (success) {
+        setIsEditingPassword(false)
+        setCurrentPassword("")
+        setNewPassword("")
+        setConfirmPassword("")
+        setErrors({})
+      }
+    } catch (error) {
+      console.error("Password update failed:", error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handlePasswordCancel = () => {
@@ -135,6 +112,8 @@ export function ProfilePage() {
     })
   }
 
+  console.log("User data:", user)
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -149,7 +128,7 @@ export function ProfilePage() {
             <div className="h-32 bg-gradient-to-r from-[#d5233b] to-red-700 rounded-lg"></div>
             <div className="absolute -bottom-12 left-8">
               <div className="h-24 w-24 rounded-full bg-gradient-to-br from-[#d5233b] to-red-700 flex items-center justify-center text-white text-3xl font-bold border-4 border-white shadow-lg">
-                {user.avatar || user.name.charAt(0)}
+                {user.username.substring(0, 2).toUpperCase()}
               </div>
             </div>
           </div>
@@ -168,11 +147,13 @@ export function ProfilePage() {
                 {user.active ? "Active" : "Inactive"}
               </Badge>
               <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                {user.role}
+                {user.roles}
               </Badge>
-              <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                {user.tag}
-              </Badge>
+              {user.tag ? (
+                <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                  {user.tag}
+                </Badge>
+              ) : null}
             </div>
           </div>
         </motion.div>
@@ -237,56 +218,12 @@ export function ProfilePage() {
                       <Label className="text-sm font-medium text-gray-700">Username</Label>
                       <p className="text-xs text-gray-500 mt-1">Used for login and system identification</p>
                     </div>
-                    {/* {!isEditingUsername && (
-                      <Button variant="outline" size="sm" onClick={handleUsernameEdit}>
-                        <Edit3 className="h-4 w-4 mr-2" />
-                        Edit
-                      </Button>
-                    )} */}
                   </div>
 
-                  {isEditingUsername ? (
-                    <div className="space-y-3">
-                      <div>
-                        <Input
-                          value={editUsername}
-                          onChange={(e) => {
-                            setEditUsername(e.target.value)
-                            if (errors.username) {
-                              setErrors((prev) => {
-                                const newErrors = { ...prev }
-                                delete newErrors.username
-                                return newErrors
-                              })
-                            }
-                          }}
-                          placeholder="Enter new username"
-                          className={errors.username ? "border-red-500" : ""}
-                        />
-                        {errors.username && (
-                          <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
-                            <AlertCircle className="h-4 w-4" />
-                            {errors.username}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" onClick={handleUsernameSave}>
-                          <Save className="h-4 w-4 mr-2" />
-                          Save
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={handleUsernameCancel}>
-                          <X className="h-4 w-4 mr-2" />
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-md">
-                      <User className="h-4 w-4 text-gray-500" />
-                      <span className="text-gray-900 font-mono">{user.username}</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-md">
+                    <User className="h-4 w-4 text-gray-500" />
+                    <span className="text-gray-900 font-mono">{user.username}</span>
+                  </div>
                 </div>
 
                 <Separator />
@@ -426,11 +363,15 @@ export function ProfilePage() {
                       </div>
 
                       <div className="flex gap-2">
-                        <Button size="sm" onClick={handlePasswordSave}>
-                          <Save className="h-4 w-4 mr-2" />
+                        <Button size="sm" onClick={handlePasswordSave} disabled={isLoading}>
+                          {isLoading ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          ) : (
+                            <Save className="h-4 w-4 mr-2" />
+                          )}
                           Update Password
                         </Button>
-                        <Button variant="outline" size="sm" onClick={handlePasswordCancel}>
+                        <Button variant="outline" size="sm" onClick={handlePasswordCancel} disabled={isLoading}>
                           <X className="h-4 w-4 mr-2" />
                           Cancel
                         </Button>
@@ -439,7 +380,7 @@ export function ProfilePage() {
                   ) : (
                     <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-md">
                       <span className="text-gray-900">••••••••••••</span>
-                      <span className="text-xs text-gray-500 ml-auto">Last updated recently</span>
+                      {/* <span className="text-xs text-gray-500 ml-auto">Last updated recently</span> */}
                     </div>
                   )}
                 </div>
@@ -467,7 +408,7 @@ export function ProfilePage() {
                   <Label className="text-sm font-medium text-gray-700">Role</Label>
                   <div className="mt-1">
                     <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                      {user.role}
+                      {user.roles}
                     </Badge>
                   </div>
                 </div>
@@ -475,7 +416,7 @@ export function ProfilePage() {
                 <div>
                   <Label className="text-sm font-medium text-gray-700">User Types</Label>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {user.userTypes.map((type) => (
+                    {user.usertypes.map((type) => (
                       <Badge key={type} variant="secondary" className="bg-gray-100 text-gray-700">
                         {type}
                       </Badge>
@@ -484,13 +425,18 @@ export function ProfilePage() {
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">Tag</Label>
+                  {user.tag ? (
+                    <>
+                 <Label className="text-sm font-medium text-gray-700">Tag</Label>
                   <div className="mt-1">
                     <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
                       <Tag className="h-3 w-3 mr-1" />
                       {user.tag}
                     </Badge>
                   </div>
+                    </>
+              ) : null}
+                 
                 </div>
               </CardContent>
             </Card>
@@ -506,25 +452,114 @@ export function ProfilePage() {
               <CardContent className="space-y-4">
                 <div>
                   <Label className="text-sm font-medium text-gray-700">Vehicle Groups</Label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {user.vehicleGroups.map((group) => (
+                  <div className="flex flex-wrap gap-2 mt-2 max-h-20 overflow-y-auto">
+                    {user.vehiclegrp.map((group) => (
                       <Badge key={group} variant="outline" className="bg-green-50 text-green-700 border-green-200">
                         {group}
                       </Badge>
                     ))}
                   </div>
+                  {user.vehiclegrp.length > 3 && (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="link" size="sm" className="p-0 h-auto text-xs">
+                          View all ({user.vehiclegrp.length})
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Vehicle Groups</DialogTitle>
+                        </DialogHeader>
+                        <ScrollArea className="h-60">
+                          <div className="flex flex-wrap gap-2">
+                            {user.vehiclegrp.map((group) => (
+                              <Badge
+                                key={group}
+                                variant="outline"
+                                className="bg-green-50 text-green-700 border-green-200"
+                              >
+                                {group}
+                              </Badge>
+                            ))}
+                          </div>
+                        </ScrollArea>
+                      </DialogContent>
+                    </Dialog>
+                  )}
                 </div>
 
                 <div>
                   <Label className="text-sm font-medium text-gray-700">Geofence Groups</Label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {user.geofenceGroups.map((group) => (
+                  <div className="flex flex-wrap gap-2 mt-2 max-h-20 overflow-y-auto">
+                    {user.geofencegrp.map((group) => (
                       <Badge key={group} variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
                         <MapPin className="h-3 w-3 mr-1" />
                         {group}
                       </Badge>
                     ))}
                   </div>
+                  {user.geofencegrp.length > 3 && (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="link" size="sm" className="p-0 h-auto text-xs">
+                          View all ({user.geofencegrp.length})
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Geofence Groups</DialogTitle>
+                        </DialogHeader>
+                        <ScrollArea className="h-60">
+                          <div className="flex flex-wrap gap-2">
+                            {user.geofencegrp.map((group) => (
+                              <Badge
+                                key={group}
+                                variant="outline"
+                                className="bg-orange-50 text-orange-700 border-orange-200"
+                              >
+                                <MapPin className="h-3 w-3 mr-1" />
+                                {group}
+                              </Badge>
+                            ))}
+                          </div>
+                        </ScrollArea>
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">Customer Groups</Label>
+                  <div className="flex flex-wrap gap-2 mt-2 max-h-20 overflow-y-auto">
+                    {user.customergrp.map((group) => (
+                      <Badge key={group} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                        {group}
+                      </Badge>
+                    ))}
+                  </div>
+                  {user.customergrp.length > 3 && (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="link" size="sm" className="p-0 h-auto text-xs">
+                          View all ({user.customergrp.length})
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Customer Groups</DialogTitle>
+                        </DialogHeader>
+                        <ScrollArea className="h-60">
+                          <div className="flex flex-wrap gap-2">
+                            {user.customergrp.map((group) => (
+                              <Badge key={group} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                {group}
+                              </Badge>
+                            ))}
+                          </div>
+                        </ScrollArea>
+                      </DialogContent>
+                    </Dialog>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -559,17 +594,16 @@ export function ProfilePage() {
                   </div>
                 </div>
 
-                <div className="text-center pt-4 border-t">
+                {/* <div className="text-center pt-4 border-t">
                   <p className="text-xs text-gray-500">
                     Account created on <span className="font-medium">{formatDate(new Date().toISOString())}</span>
                   </p>
-                </div>
+                </div> */}
               </CardContent>
             </Card>
           </motion.div>
         </div>
       </div>
-      {Toaster}
     </div>
   )
 }

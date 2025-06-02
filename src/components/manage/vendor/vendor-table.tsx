@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Edit, Trash2, ChevronLeft, ChevronRight, Eye, MoreVertical, ChevronUp, ChevronDown } from "lucide-react"
+import { Edit, Trash2, ChevronLeft, ChevronRight, Eye, MoreVertical, ChevronUp, ChevronDown,CheckCircle,XCircle, } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -233,6 +233,12 @@ export function VendorTable({
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          {vendor.active ? (
+                            <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                          ) : (
+                            <XCircle className="h-4 w-4 text-red-500 mr-2" />
+                          )}
                         <Badge
                           variant={vendor.active ? "default" : "outline"}
                           className={
@@ -243,6 +249,7 @@ export function VendorTable({
                         >
                           {vendor.active ? "Active" : "Inactive"}
                         </Badge>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">{formatDate(vendor.createdAt)}</div>

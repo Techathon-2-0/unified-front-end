@@ -1,4 +1,4 @@
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './navbar';
 import LogisticsSidebar from './sidebar';
 import Footer from './footer';
@@ -6,16 +6,18 @@ import Loader from './loader';
 import { useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '../context/AuthContext';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const LogisticsLayout: React.FC<LayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
   const location = useLocation();
+  const { user, loading: authLoading } = useAuth();
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -23,9 +25,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   useEffect(() => {
     setLoading(true);
-    const timeout = setTimeout(() => setLoading(false), 1000); // adjust duration
+    const timeout = setTimeout(() => setLoading(false), 1000);
     return () => clearTimeout(timeout);
   }, [location.pathname]);
+
+  // Show loading if auth is still loading
+  if (authLoading) {
+    return <Loader />;
+  }
+
+  // Don't render if no user (this should be handled by ProtectedRoute, but just in case)
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -55,10 +67,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
           <Footer version="v2.4.1"/>
         </main>
-        
       </div>
     </div>
   );
 };
 
-export default Layout;
+export default LogisticsLayout;

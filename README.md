@@ -37,7 +37,7 @@ This project uses environment variables for backend connectivity.
 ## 🎨 Tech Stack
 
 * **React** 
-* **Tailwind CSS And ShadCN** (for styling)
+* **Tailwind CSS** (for styling)
 * **TypeScript** 
 * **Vite** (for blazing-fast dev and build)
 * **Backend** (via API at `VITE_BACKEND_URL`)

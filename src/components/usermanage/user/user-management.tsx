@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { PlusCircle, Search } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -8,28 +8,67 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import type { User } from "../../../types/usermanage/user"
-import { initialUsers } from "../../../data/usermanage/user"
+import { fetchUsers, createUser, updateUser, deleteUser, searchUsers } from "../../../data/usermanage/user"
 
 export function UserManagementPage() {
-  const [users, setUsers] = useState<User[]>(initialUsers)
+  const [users, setUsers] = useState<User[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
+  const [isLoading, setIsLoading] = useState(true)
   const itemsPerPage = 5
 
-  const { showSuccessToast, showErrorToast, Toaster } = useToast({ position: "top-right",});
+  const { showSuccessToast, showErrorToast, Toaster } = useToast({ position: "top-right" })
+
+  // Load users on component mount
+  useEffect(() => {
+    loadUsers()
+  }, [])
+
+  const loadUsers = async () => {
+    try {
+      setIsLoading(true)
+      const usersData = await fetchUsers()
+      setUsers(usersData)
+    } catch (error) {
+      showErrorToast("Error", "Failed to load users. Please try again.")
+      console.error("Failed to load users:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Handle search with debouncing
+  useEffect(() => {
+    const delayedSearch = setTimeout(async () => {
+      if (searchQuery.trim()) {
+        try {
+          const searchResults = await searchUsers(searchQuery)
+          setUsers(searchResults)
+          setCurrentPage(1)
+        } catch (error) {
+          showErrorToast("Search Error", "Failed to search users. Please try again.")
+          console.error("Search failed:", error)
+        }
+      } else {
+        loadUsers()
+      }
+    }, 300)
+
+    return () => clearTimeout(delayedSearch)
+  }, [searchQuery])
 
   const filteredUsers = users.filter(
     (user) =>
       user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.phone.includes(searchQuery) ||
+      user.phone.toString().includes(searchQuery) ||
       user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.userTypes.some((type) => type.toLowerCase().includes(searchQuery.toLowerCase())) ||
       user.tag?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.id.toLowerCase().includes(searchQuery.toLowerCase()),
+      user.id.toString().includes(searchQuery),
   )
 
   const totalCount = filteredUsers.length
@@ -46,26 +85,81 @@ export function UserManagementPage() {
     setIsDrawerOpen(true)
   }
 
-  const handleSave = (user: User) => {
+  const handleSave = async (user: User) => {
+  try {
     if (selectedUser) {
       // Update existing user
-      setUsers(users.map((u) => (u.id === user.id ? user : u)))
-      showSuccessToast("User updated", `${user.name} has been updated successfully.`)
+      const updatedUser = await updateUser(user)
+      setUsers(users.map((u) => (u.id === user.id ? updatedUser : u)))
+      showSuccessToast("User Updated", `${user.name} has been updated successfully.`)
     } else {
       // Create new user
-      setUsers([...users, user])
-      showSuccessToast("User created", `${user.name} has been created successfully.`)
+      const newUser = await createUser(user)
+      setUsers([...users, newUser])
+      showSuccessToast("User Created", `${user.name} has been created successfully.`)
     }
     setIsDrawerOpen(false)
-  }
+  } catch (error: any) {
+    console.error("Error saving user:", error)
 
-  const handleDelete = (id: string) => {
-    setUsers(users.filter((u) => u.id !== id))
-    showSuccessToast("User deleted", "The user has been deleted successfully.")
+    // Handle specific error cases
+    if (error.response?.status === 400) {
+      const errorMessage = error.response.data.message
+      
+      // Check for both username and email in the same message
+      if (errorMessage.toLowerCase().includes("username") && errorMessage.toLowerCase().includes("email")) {
+        showErrorToast("Duplicate Error", "Both username and email already exist in the system.")
+      } 
+      // Check for username only
+      else if (errorMessage.toLowerCase().includes("username")) {
+        showErrorToast("Username Exists", "This username is already taken. Please choose a different one.")
+      } 
+      // Check for email only
+      else if (errorMessage.toLowerCase().includes("email")) {
+        showErrorToast("Email Exists", "This email address is already registered. Please use a different email.")
+      } 
+      // Fallback for other validation errors
+      else {
+        showErrorToast("Validation Error", errorMessage)
+      }
+    } else {
+      showErrorToast("Error", "Failed to save user. Please try again.")
+    }
+  }
+}
+
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteUser(id)
+      setUsers(users.filter((u) => u.id !== id))
+      showSuccessToast("User Deleted", "The user has been deleted successfully.")
+    } catch (error) {
+      showErrorToast("Error", "Failed to delete user. Please try again.")
+      console.error("Failed to delete user:", error)
+    }
   }
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen bg-slate-50">
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <main className="flex-1 overflow-auto">
+            <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
+                  <p className="mt-4 text-gray-600">Loading users...</p>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    )
   }
 
   return (
