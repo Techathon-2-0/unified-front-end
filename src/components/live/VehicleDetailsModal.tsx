@@ -6,7 +6,7 @@ import {
   Power,
   Thermometer,
   Activity,
-  Cpu,
+  //Cpu,
   MapPin,
   Wifi,
   User,
@@ -562,7 +562,23 @@ const VehicleDetailsModal = ({ vehicle, onClose }: VehicleDetailsModalProps) => 
                       <p className="text-sm font-medium text-gray-900 dark:text-white">{vehicle.gpsPing || "0"}</p>
                     </div>
                   </div>
+                  {/* GPS Time */}
                   <div className="flex items-center">
+                    <Wifi className="h-5 w-5 text-blue-500 dark:text-blue-400 mr-3" />
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">GPS Time</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{vehicle.gpsTime || "No Data"}</p>
+                    </div>
+                  </div>
+                  {/* GPRS Time */}
+                  <div className="flex items-center">
+                    <Wifi className="h-5 w-5 text-blue-500 dark:text-blue-400 mr-3" />
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">GPRS Time</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{vehicle.gprsTime || "No Data"}</p>
+                    </div>
+                  </div>
+                  {/* <div className="flex items-center">
                     <Cpu className="h-5 w-5 text-blue-500 dark:text-blue-400 mr-3" />
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400">Device Name</p>
@@ -570,7 +586,7 @@ const VehicleDetailsModal = ({ vehicle, onClose }: VehicleDetailsModalProps) => 
                         {vehicle.deviceName || "No Data"}
                       </p>
                     </div>
-                  </div>
+                  </div> */}
                   <div className="flex items-center">
                     <MapPin className="h-5 w-5 text-blue-500 dark:text-blue-400 mr-3" />
                     <div>

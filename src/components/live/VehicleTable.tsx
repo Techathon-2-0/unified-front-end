@@ -41,6 +41,16 @@ const VehicleTable = ({
     return sortDirection === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
   }
 
+  // Helper to get the latest time between gpsTime and gprsTime
+  const getLatestTime = (vehicle: Vehicle) => {
+    const gps = vehicle.gpsTime ? new Date(vehicle.gpsTime) : null
+    const gprs = vehicle.gprsTime ? new Date(vehicle.gprsTime) : null
+    if (gps && gprs) {
+      return gps > gprs ? vehicle.gpsTime : vehicle.gprsTime
+    }
+    return gps ? vehicle.gpsTime : gprs ? vehicle.gprsTime : "No Data"
+  }
+
   // const getStatusColor = (status: string) => {
   //   switch (status) {
   //     case "Active":
@@ -80,10 +90,7 @@ const VehicleTable = ({
                   scope="col"
                   className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400"
                 >
-                  <button
-                    className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300"
-
-                  >
+                  <button className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300">
                     ID
                   </button>
                 </th>
@@ -106,10 +113,10 @@ const VehicleTable = ({
                 </th> */}
                 <th
                   scope="col"
-                  className="px-6 py-3 text-center text-sm font-medium text-gray-500 dark:text-gray-400"
+                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400"
                 >
                   <button
-                    className="flex items-center gap-1 justify-center hover:text-gray-700 dark:hover:text-gray-300"
+                    className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300"
                     onClick={() => handleSortClick("speed")}
                   >
                     Speed {getSortIcon("speed")}
@@ -117,10 +124,10 @@ const VehicleTable = ({
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-center text-sm font-medium text-gray-500 dark:text-gray-400"
+                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400"
                 >
                   <button
-                    className="flex items-center gap-1 justify-center hover:text-gray-700 dark:hover:text-gray-300"
+                    className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300"
                     onClick={() => handleSortClick("address")}
                   >
                     Address {getSortIcon("address")}
@@ -134,24 +141,13 @@ const VehicleTable = ({
                 </th> */}
                 <th
                   scope="col"
-                  className="pr-6 pl-10 py-3 text-center text-sm font-medium text-gray-500 dark:text-gray-400"
+                  className="px-6 pr-13 py-3 text-center text-sm font-medium text-gray-500 dark:text-gray-400"
                 >
                   <button
-                    className="flex items-center gap-1 justify-center hover:text-gray-700 dark:hover:text-gray-300 whitespace-nowrap"
+                    className="flex items-center gap-1 justify-center hover:text-gray-700 dark:hover:text-gray-300 whitespace-nowrap "
                     onClick={() => handleSortClick("gpsTime")}
                   >
                     GPS Time {getSortIcon("gpsTime")}
-                  </button>
-                </th>
-                <th
-                  scope="col"
-                  className="pr-6 pl-10 py-3 text-center text-sm font-medium text-gray-500 dark:text-gray-400"
-                >
-                  <button
-                    className="flex items-center gap-1 justify-center hover:text-gray-700 dark:hover:text-gray-300"
-                    onClick={() => handleSortClick("gprsTime")}
-                  >
-                    GPRS Time {getSortIcon("gprsTime")}
                   </button>
                 </th>
                 <th
@@ -206,28 +202,8 @@ const VehicleTable = ({
                           onChange={(e) => onSelectVehicle(vehicle.id, e.target.checked)}
                         />
                       </td> */}
-                      <td className="px-6 py-4  text-left text-sm text-gray-500 dark:text-gray-400">{vehicle.id || "NULL"}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">{vehicle.vehicleNumber}</div>
-                          {vehicle.hasSpeedChart && (
-                            <svg
-                              className="ml-2 w-4 h-4 text-blue-500 dark:text-blue-400"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M3 13H7L10 9L13 15L16 11L21 13"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          )}
-                        </div>
-                      </td>
+                      <td className="px-6 py-4 text-left text-sm text-gray-500 dark:text-gray-400">{vehicle.id || "NULL"}</td>
+                       <td className="px-6 py-4 text-left font-medium text-sm text-gray-900 dark:text-gray-400">{vehicle.vehicleNumber || "NULL"}</td>
                       {/* <td className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">{vehicle.deviceName}</td> */}
                       <td className="px-6 py-4 text-left text-sm text-gray-500 dark:text-gray-400">{vehicle.speed || 0} km/h</td>
                       <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-xs">
@@ -235,7 +211,6 @@ const VehicleTable = ({
                           <div className="truncate cursor-default">
                             {vehicle.address || "No address"}
                           </div>
-
                           {vehicle.address && (
                             <div className="absolute left-0 bottom-full mb-2 px-3 py-2 bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-md shadow-xl border border-slate-700 z-10 min-w-0 w-max max-w-[400px] break-words whitespace-normal opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out transform group-hover:-translate-y-1 translate-y-1">
                               <div className="font-medium text-slate-100 leading-snug break-words">
@@ -249,8 +224,9 @@ const VehicleTable = ({
                         </div>
                       </td>
                       {/* <td className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">{vehicle.altitude}</td> */}
-                      <td className="px-6 py-4  text-center text-sm text-gray-500 dark:text-gray-400">{vehicle.gpsTime || "No Data"}</td>
-                      <td className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">{vehicle.gprsTime || "No Data"}</td>
+                      <td className="px-6 pr-13  py-4 text-center text-sm text-gray-500 dark:text-gray-400 w-1 whitespace-nowrap">
+                        {getLatestTime(vehicle)}
+                      </td>
                       <td className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">{vehicle.type}</td>
                       <td className="px-6 py-4 text-center ">
                         <span
@@ -320,5 +296,7 @@ const VehicleTable = ({
     </>
   )
 }
+
+
 
 export default VehicleTable

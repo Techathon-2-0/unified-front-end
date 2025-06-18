@@ -90,7 +90,7 @@ const navItems = [
     path: "/manage",
     hasChildren: true,
     children: [
-      { label: "Vehicles Master", path: "/manage/entities" },
+      { label: "Vehicle Master", path: "/manage/vehicles" },
       { label: "Vehicle Groups", path: "/manage/group" },
       { label: "Vendors", path: "/manage/vendor" },
       { label: "Customer Groups", path: "/manage/customer" },

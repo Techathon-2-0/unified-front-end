@@ -316,6 +316,7 @@ export function EntityManagementPage() {
           setIsTableLoading(true)
           try {
             const createdEntities: Entity[] = []
+            const updatedEntities: Entity[] = []
 
             for (let i = 1; i < lines.length; i++) {
               const values = parseCSVLine(lines[i])
@@ -328,24 +329,41 @@ export function EntityManagementPage() {
                   entityVendors = vendors.filter((v) => vendorNames.includes(v.name))
                 }
 
-                // Create entity via API
-                const newEntityData = {
+                // Prepare entity data
+                const entityData = {
                   vehicleNumber: values[0],
                   vendors: entityVendors,
                   type: values[1] as "Car" | "Truck" | "Excavator",
                   status: values[2].toLowerCase() === "active",
                 }
 
-                const newEntity = await createEntity(newEntityData)
-                createdEntities.push(newEntity)
+                // Check if entity exists by vehicle number
+                const existingEntity = entities.find(e => e.vehicleNumber === values[0])
+                if (existingEntity) {
+                  // Update existing entity
+                  const updatedEntity = await updateEntity(existingEntity.id, entityData)
+                  updatedEntities.push(updatedEntity)
+                  setEntities(prev => prev.map(e => e.id === updatedEntity.id ? updatedEntity : e))
+                } else {
+                  // Create entity via API
+                  const newEntity = await createEntity(entityData)
+                  createdEntities.push(newEntity)
+                  setEntities(prev => [...prev, newEntity])
+                }
               }
             }
 
-            if (createdEntities.length > 0) {
-              setEntities([...entities, ...createdEntities])
+            if (createdEntities.length > 0 || updatedEntities.length > 0) {
+              let msg = ""
+              if (createdEntities.length > 0) {
+                msg += `${createdEntities.length} entities created. `
+              }
+              if (updatedEntities.length > 0) {
+                msg += `${updatedEntities.length} entities updated.`
+              }
               showSuccessToast(
-                "Bulk upload successful",
-                `${createdEntities.length} entities have been added successfully.`,
+                "Bulk upload completed",
+                msg.trim()
               )
             } else {
               showErrorToast("Upload failed", "No valid data found in the CSV file.")

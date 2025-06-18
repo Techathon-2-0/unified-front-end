@@ -36,6 +36,7 @@ export interface Vehicle {
   lat: number
   lng: number
   trip_status: string
+  lastgpstime: string
 }
 
 export interface VehicleFilter {

@@ -369,17 +369,17 @@ export function GeofenceMatrix({
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-50 h-70 right-10 dark:bg-gray-900 dark:border-gray-700">
             {/* Clear All Filters Button */}
-              <div className="flex justify-end">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-900"
-                  onClick={() => clearFilter("all")}
-                >
-                  Clear All Filters
-                </Button>
-              </div>
-            
+            <div className="flex justify-end">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-900"
+                onClick={() => clearFilter("all")}
+              >
+                Clear All Filters
+              </Button>
+            </div>
+
             <div className="p-2 space-y-3">
               {/* Vehicle Type Multi-select */}
               <div>
@@ -463,7 +463,7 @@ export function GeofenceMatrix({
                   </div>
                 </div>
               )}
-              
+
             </div>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -639,6 +639,9 @@ export function GeofenceMatrix({
                       {getSortArrow("type")}
                     </div>
                   </TableHead>
+                  <TableHead className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Last GPS Ping
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
@@ -671,11 +674,10 @@ export function GeofenceMatrix({
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -20 }}
                           transition={{ duration: 0.3, delay: index * 0.05 }}
-                          className={`hover:bg-gray-50 dark:hover:bg-gray-800 ${
-                            highlightedVehicle === vehicle.id
+                          className={`hover:bg-gray-50 dark:hover:bg-gray-800 ${highlightedVehicle === vehicle.id
                               ? "bg-red-50 dark:bg-gray-800/60"
                               : ""
-                          }`}
+                            }`}
                           onClick={() => onVehicleClick(vehicle.id)}
                         >
                           <TableCell className="px-4 py-4 text-center whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
@@ -705,8 +707,8 @@ export function GeofenceMatrix({
                               {hasLatLng ? (
                                 <Badge
                                   className={`border ${vehicle.geofenceStatus === "inside"
-                                      ? "bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-800"
-                                      : "bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-200 dark:border-red-800"
+                                    ? "bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-800"
+                                    : "bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-200 dark:border-red-800"
                                     }`}
                                 >
                                   {vehicle.geofenceStatus === "inside" ? "Inside" : "Outside"}
@@ -726,35 +728,43 @@ export function GeofenceMatrix({
                           <TableCell className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                             <Badge
                               className={`border ${vehicle.status === "Active"
-                                  ? "bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-800"
-                                  : vehicle.status === "No Update"
-                                    ? "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900 dark:text-yellow-200 dark:border-yellow-800"
-                                    : "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
+                                ? "bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-200 dark:border-green-800"
+                                : vehicle.status === "No Update"
+                                  ? "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900 dark:text-yellow-200 dark:border-yellow-800"
+                                  : "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
                                 }`}
-                          >
-                            {vehicle.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                          {vehicle.trip_status || "-"}
-                        </TableCell>
-                        <TableCell className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                          {vehicle.driverName || "-"}
-                        </TableCell>
-                        <TableCell className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                          {vehicle.driverMobile || "-"}
-                        </TableCell>
-                        <TableCell className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                          {vehicle.vendorName || "-"}
-                        </TableCell>
-                        <TableCell className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                          <div className="flex items-center">
-                            {getVehicleIcon(vehicle.type)}
-                            <span className="ml-2">{vehicle.type}</span>
-                          </div>
-                        </TableCell>
-                      </motion.tr>
-                    )})}
+                            >
+                              {vehicle.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                            {vehicle.trip_status || "-"}
+                          </TableCell>
+                          <TableCell className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                            {vehicle.driverName || "-"}
+                          </TableCell>
+                          <TableCell className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                            {vehicle.driverMobile || "-"}
+                          </TableCell>
+                          <TableCell className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                            {vehicle.vendorName || "-"}
+                          </TableCell>
+                          <TableCell className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                            <div className="flex items-center">
+                              {getVehicleIcon(vehicle.type)}
+                              <span className="ml-2">{vehicle.type}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                            {
+                              vehicle.gpsTime && vehicle.gprsTime
+                                ? (new Date(vehicle.gpsTime) > new Date(vehicle.gprsTime) ? vehicle.gpsTime : vehicle.gprsTime)
+                                : (vehicle.gpsTime || vehicle.gprsTime || "-")
+                            }
+                          </TableCell>
+                        </motion.tr>
+                      )
+                    })}
                   </AnimatePresence>
                 )}
               </TableBody>
@@ -774,8 +784,8 @@ export function GeofenceMatrix({
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
               className={`relative inline-flex items-center px-2 py-2 rounded-md border ${currentPage === 1
-                  ? "border-gray-300 bg-white text-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-700 cursor-not-allowed"
-                  : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+                ? "border-gray-300 bg-white text-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-700 cursor-not-allowed"
+                : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
                 }`}
             >
               <ChevronLeft className="h-4 w-4" />
@@ -787,8 +797,8 @@ export function GeofenceMatrix({
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages || totalPages === 0}
               className={`relative inline-flex items-center px-2 py-2 rounded-md border ${currentPage === totalPages || totalPages === 0
-                  ? "border-gray-300 bg-white text-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-700 cursor-not-allowed"
-                  : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+                ? "border-gray-300 bg-white text-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-700 cursor-not-allowed"
+                : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
                 }`}
             >
               <ChevronRight className="h-4 w-4" />

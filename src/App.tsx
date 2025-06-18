@@ -84,7 +84,7 @@ const Appp = () => {
             <Route path="/back-office" element={<Back />} />
             <Route path="/user-management/responsibility" element={<Responsibility />} />
             <Route path="/user-management/user" element={<UserManagement />} />
-            <Route path="/manage/entities" element={<Entities />} />
+            <Route path="/manage/vehicles" element={<Entities />} />
             <Route path="/manage/group" element={<Group />} />
             <Route path="/manage/vendor" element={<Vendor />} />
             <Route path="/manage/customer" element={<CustomerGroup />} />

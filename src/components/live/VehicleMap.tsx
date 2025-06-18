@@ -424,9 +424,9 @@ const VehicleMap = ({ vehicles, loading, filters, onFilterChange }: VehicleMapPr
                           >
                             <Info className="h-5 w-5" />
                           </button>
-                          <div className="absolute right-0 mt-1 px-2 py-1 bg-black text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                          {/* <div className="absolute right-0 mt-1 px-2 py-1 bg-black text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
                             Expand to view vehicle details
-                          </div>
+                          </div> */}
                         </div>
                         {/* <p className="text-xs text-gray-500 dark:text-gray-400">{vehicle.deviceName}</p> */}
                         <div className="mt-1 flex items-center">
