@@ -38,6 +38,7 @@ export async function fetchTrips(
     params.append("limit", limit.toString())
 
     const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/trip/v1/${userId}?${params}`)
+    console.log("Response from fetchTrips:", res.data)
 
     if (res.data && res.data.data) {
       return res.data.data as TripApi[]

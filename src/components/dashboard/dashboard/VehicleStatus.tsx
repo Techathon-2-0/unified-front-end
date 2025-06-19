@@ -190,15 +190,15 @@ const VehicleStatus: React.FC = () => {
                       </td>
                       <td className="px-3 sm:px-4 py-4 min-w-[140px]">
                         <div className="min-w-0">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white truncate">{vehicle.driverName}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{vehicle.driverMobile}</div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white truncate">{vehicle.driverName || "-"}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{vehicle.driverMobile || "-"}</div>
                         </div>
                       </td>
                       <td className="px-3 sm:px-4 py-4 min-w-[200px]">
                         <div className="flex items-center space-x-1 min-w-0">
                           <MapPin size={12} className="text-gray-400 dark:text-gray-500 flex-shrink-0" />
                           <div className="relative group max-w-xs">
-                          <div className="truncate cursor-default">
+                          <div className="truncate text-xs cursor-default max-w-[150px]">
                             {vehicle.address || "No address"}
                           </div>
                           {vehicle.address && (

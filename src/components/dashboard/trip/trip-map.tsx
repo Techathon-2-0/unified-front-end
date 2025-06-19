@@ -6,6 +6,8 @@ import "leaflet/dist/leaflet.css"
 import type { TripApi } from "../../../types/dashboard/trip_type"
 import type { TripMapProps } from "../../../types/dashboard/trip_type"
 import { TripDetailsModal } from "./trip-details-modal"
+import { renderToString } from "react-dom/server";
+import getVehicle3DSVG from "../../live/vehicleicon"
 
 // Extend props to accept fullscreen state and setter
 type TripMapExtraProps = {
@@ -142,14 +144,56 @@ export function TripMap({
           typeof trip.current_location_coordindates[0] === "number" &&
           typeof trip.current_location_coordindates[1] === "number"
         ) {
+          // Use 3D vehicle icon for current location marker
           const marker = L.marker(trip.current_location_coordindates, {
             icon: L.divIcon({
               className: "custom-div-icon",
-              html: `<div class="current-location-marker ${trip.status.toLowerCase()}">
-                
-              </div>`,
-              iconSize: [40, 40],
-              iconAnchor: [20, 20],
+              html: renderToString(
+                <div
+                  style={{
+                    width: "60px",
+                    height: "60px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: 0,
+                    margin: 0,
+                    lineHeight: 1,
+                    position: "relative",
+                    transform: "perspective(120px) rotateX(45deg)",
+                    transformStyle: "preserve-3d",
+                  }}>
+                  <div
+                    style={{
+                      width: "45px",
+                      height: "45px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transform: "scale(1.2)",
+                    }}>
+                    {getVehicle3DSVG(trip.vehicle_type)}
+                  </div>
+                  {/* Status indicator dot */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(15px, -15px) rotateX(-45deg) translateZ(15px)",
+                      width: "12px",
+                      height: "12px",
+                      borderRadius: "50%",
+                      backgroundColor: trip.status?.toLowerCase() === "inactive" ? "#6b7280" : "#22c55e",
+                      border: "2px solid white",
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.4)",
+                      zIndex: 10,
+                    }}
+                  />
+                </div>
+              ),
+              iconSize: [60, 60],
+              iconAnchor: [30, 20],
             }),
           })
             .addTo(mapInstanceRef.current!)
@@ -172,12 +216,13 @@ export function TripMap({
     } else {
       // Show actual path with stops
       trips.forEach((trip) => {
-        // Add origin marker
+        // Add origin marker only if coordinates exist and are not [0,0]
         if (
           Array.isArray(trip.origin_coordinates) &&
           trip.origin_coordinates.length === 2 &&
           typeof trip.origin_coordinates[0] === "number" &&
-          typeof trip.origin_coordinates[1] === "number"
+          typeof trip.origin_coordinates[1] === "number" &&
+          !(trip.origin_coordinates[0] === 0 && trip.origin_coordinates[1] === 0)
         ) {
           const originMarker = L.marker(trip.origin_coordinates, {
             icon: L.divIcon({
@@ -204,11 +249,13 @@ export function TripMap({
           .sort((a, b) => a.actual_sequence - b.actual_sequence)
 
         completedStops.forEach((stop, index) => {
+          // Only generate stop marker if origin_coordinates are valid and not [0,0]
           if (
             Array.isArray(trip.origin_coordinates) &&
             trip.origin_coordinates.length === 2 &&
             typeof trip.origin_coordinates[0] === "number" &&
-            typeof trip.origin_coordinates[1] === "number"
+            typeof trip.origin_coordinates[1] === "number" &&
+            !(trip.origin_coordinates[0] === 0 && trip.origin_coordinates[1] === 0)
           ) {
             // Generate coordinates around the route (in real app, use actual coordinates)
             const lat = trip.origin_coordinates[0] + (index + 1) * 0.1
@@ -245,12 +292,56 @@ export function TripMap({
           typeof trip.current_location_coordindates[0] === "number" &&
           typeof trip.current_location_coordindates[1] === "number"
         ) {
+          // Use 3D vehicle icon for current location marker
           const currentMarker = L.marker(trip.current_location_coordindates, {
             icon: L.divIcon({
               className: "custom-div-icon",
-              html: `<div class="current-location-marker ${trip.status.toLowerCase()}">NOW</div>`,
-              iconSize: [30, 30],
-              iconAnchor: [15, 15],
+              html: renderToString(
+                <div
+                  style={{
+                    width: "60px",
+                    height: "60px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: 0,
+                    margin: 0,
+                    lineHeight: 1,
+                    position: "relative",
+                    transform: "perspective(120px) rotateX(45deg)",
+                    transformStyle: "preserve-3d",
+                  }}>
+                  <div
+                    style={{
+                      width: "45px",
+                      height: "45px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transform: "scale(1.2)",
+                    }}>
+                    {getVehicle3DSVG(trip.vehicle_type)}
+                  </div>
+                  {/* Status indicator dot */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(15px, -15px) rotateX(-45deg) translateZ(15px)",
+                      width: "12px",
+                      height: "12px",
+                      borderRadius: "50%",
+                      backgroundColor: trip.status?.toLowerCase() === "inactive" ? "#6b7280" : "#22c55e",
+                      border: "2px solid white",
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.4)",
+                      zIndex: 10,
+                    }}
+                  />
+                </div>
+              ),
+              iconSize: [60, 60],
+              iconAnchor: [30, 20],
             }),
           })
             .addTo(mapInstanceRef.current!)
@@ -269,13 +360,14 @@ export function TripMap({
           markersRef.current.push(currentMarker)
         }
 
-        // Draw path line
+        // Draw path line only if origin_coordinates are valid and not [0,0]
         if (
           completedStops.length > 0 &&
           Array.isArray(trip.origin_coordinates) &&
           trip.origin_coordinates.length === 2 &&
           typeof trip.origin_coordinates[0] === "number" &&
-          typeof trip.origin_coordinates[1] === "number"
+          typeof trip.origin_coordinates[1] === "number" &&
+          !(trip.origin_coordinates[0] === 0 && trip.origin_coordinates[1] === 0)
         ) {
           const pathCoordinates: [number, number][] = [
             trip.origin_coordinates,
@@ -698,4 +790,4 @@ export function TripMap({
     </div>
   )
 }
-          
+
