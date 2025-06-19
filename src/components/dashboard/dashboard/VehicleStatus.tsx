@@ -138,10 +138,10 @@ const VehicleStatus: React.FC = () => {
 
       {/* Scrollable Table Container */}
       <div className="flex-1 overflow-hidden">
-        {/* Direct overflow handling without ScrollArea for horizontal scroll */}
-        <div className="h-full overflow-auto">
-          <div className="min-w-[800px]"> {/* Minimum width to ensure proper layout */}
-            <table className="w-full">
+        {/* Responsive overflow: horizontal scroll only on small screens */}
+        <div className="h-full overflow-x-auto">
+          <div className="w-full">
+            <table className="w-full min-w-[600px] lg:min-w-0">
                 <thead className="bg-gray-50 dark:bg-gray-900 sticky top-0 z-10">
                   <tr>
                     <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider min-w-[160px]">
@@ -202,7 +202,7 @@ const VehicleStatus: React.FC = () => {
                             {vehicle.address || "No address"}
                           </div>
                           {vehicle.address && (
-                            <div className="absolute left-0 bottom-full mb-2 px-3 py-2 bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-md shadow-xl border border-slate-700 z-10 min-w-0 w-max max-w-[400px] break-words whitespace-normal opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out transform group-hover:-translate-y-1 translate-y-1">
+                            <div className="absolute left-0 bottom-full mb-2 px-3 py-2 bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-md shadow-xl border border-slate-700 z-10 min-w-0 w-max max-w-[200px] break-words whitespace-normal opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out transform group-hover:-translate-y-1 translate-y-1">
                               <div className="font-medium text-slate-100 leading-snug break-words">
                                 {vehicle.address}
                               </div>

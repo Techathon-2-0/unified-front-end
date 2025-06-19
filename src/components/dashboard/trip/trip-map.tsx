@@ -136,7 +136,7 @@ export function TripMap({
     markersRef.current = []
 
     if (mapMode === "current") {
-      // Show current location markers
+      // Show current location markers for all trips
       trips.forEach((trip) => {
         if (
           Array.isArray(trip.current_location_coordindates) &&
@@ -214,9 +214,47 @@ export function TripMap({
         }
       })
     } else {
-      // Show actual path with stops
-      trips.forEach((trip) => {
-        // Add origin marker only if coordinates exist and are not [0,0]
+      // "path" mode: Only show selected trip's path and stops
+      if (!selected) {
+        // No trip selected: show nothing
+        return
+      }
+      const trip = selected
+
+      // Add origin marker only if coordinates exist and are not [0,0]
+      if (
+        Array.isArray(trip.origin_coordinates) &&
+        trip.origin_coordinates.length === 2 &&
+        typeof trip.origin_coordinates[0] === "number" &&
+        typeof trip.origin_coordinates[1] === "number" &&
+        !(trip.origin_coordinates[0] === 0 && trip.origin_coordinates[1] === 0)
+      ) {
+        const originMarker = L.marker(trip.origin_coordinates, {
+          icon: L.divIcon({
+            className: "custom-div-icon",
+            html: `<div class="origin-marker">START</div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 15],
+          }),
+        })
+          .addTo(mapInstanceRef.current!)
+          .bindPopup(`
+          <div class="popup-content">
+            <h3>Origin</h3>
+            <p>${trip.origin}</p>
+          </div>
+        `)
+
+        markersRef.current.push(originMarker)
+      }
+
+      // Add stop markers for completed stops
+      const completedStops = trip.planned_stops
+        .filter((stop) => stop.actual_sequence > 0 && stop.status.toLowerCase() === "complete")
+        .sort((a, b) => a.actual_sequence - b.actual_sequence)
+
+      completedStops.forEach((stop, index) => {
+        // Only generate stop marker if origin_coordinates are valid and not [0,0]
         if (
           Array.isArray(trip.origin_coordinates) &&
           trip.origin_coordinates.length === 2 &&
@@ -224,176 +262,142 @@ export function TripMap({
           typeof trip.origin_coordinates[1] === "number" &&
           !(trip.origin_coordinates[0] === 0 && trip.origin_coordinates[1] === 0)
         ) {
-          const originMarker = L.marker(trip.origin_coordinates, {
+          // Generate coordinates around the route (in real app, use actual coordinates)
+          const lat = trip.origin_coordinates[0] + (index + 1) * 0.1
+          const lng = trip.origin_coordinates[1] + (index + 1) * 0.1
+
+          const stopMarker = L.marker([lat, lng], {
             icon: L.divIcon({
               className: "custom-div-icon",
-              html: `<div class="origin-marker">START</div>`,
-              iconSize: [30, 30],
-              iconAnchor: [15, 15],
+              html: `<div class="stop-marker completed">${stop.actual_sequence}</div>`,
+              iconSize: [25, 25],
+              iconAnchor: [12.5, 12.5],
             }),
           })
             .addTo(mapInstanceRef.current!)
             .bindPopup(`
             <div class="popup-content">
-              <h3>Origin</h3>
-              <p>${trip.origin}</p>
+              <h3>Stop ${stop.actual_sequence}</h3>
+              <p><strong>Location:</strong> ${stop.location_name}</p>
+              <p><strong>Customer:</strong> ${stop.customer_name}</p>
+              <p><strong>Type:</strong> ${stop.stop_type}</p>
+              <p><strong>Status:</strong> ${stop.status}</p>
             </div>
           `)
 
-          markersRef.current.push(originMarker)
+          markersRef.current.push(stopMarker)
         }
+      })
 
-        // Add stop markers for completed stops
-        const completedStops = trip.planned_stops
-          .filter((stop) => stop.actual_sequence > 0 && stop.status.toLowerCase() === "complete")
-          .sort((a, b) => a.actual_sequence - b.actual_sequence)
-
-        completedStops.forEach((stop, index) => {
-          // Only generate stop marker if origin_coordinates are valid and not [0,0]
-          if (
-            Array.isArray(trip.origin_coordinates) &&
-            trip.origin_coordinates.length === 2 &&
-            typeof trip.origin_coordinates[0] === "number" &&
-            typeof trip.origin_coordinates[1] === "number" &&
-            !(trip.origin_coordinates[0] === 0 && trip.origin_coordinates[1] === 0)
-          ) {
-            // Generate coordinates around the route (in real app, use actual coordinates)
-            const lat = trip.origin_coordinates[0] + (index + 1) * 0.1
-            const lng = trip.origin_coordinates[1] + (index + 1) * 0.1
-
-            const stopMarker = L.marker([lat, lng], {
-              icon: L.divIcon({
-                className: "custom-div-icon",
-                html: `<div class="stop-marker completed">${stop.actual_sequence}</div>`,
-                iconSize: [25, 25],
-                iconAnchor: [12.5, 12.5],
-              }),
-            })
-              .addTo(mapInstanceRef.current!)
-              .bindPopup(`
-              <div class="popup-content">
-                <h3>Stop ${stop.actual_sequence}</h3>
-                <p><strong>Location:</strong> ${stop.location_name}</p>
-                <p><strong>Customer:</strong> ${stop.customer_name}</p>
-                <p><strong>Type:</strong> ${stop.stop_type}</p>
-                <p><strong>Status:</strong> ${stop.status}</p>
-              </div>
-            `)
-
-            markersRef.current.push(stopMarker)
-          }
-        })
-
-        // Add current location if trip is not inactive
-        if (
-          trip.status.toLowerCase() !== "inactive" &&
-          Array.isArray(trip.current_location_coordindates) &&
-          trip.current_location_coordindates.length === 2 &&
-          typeof trip.current_location_coordindates[0] === "number" &&
-          typeof trip.current_location_coordindates[1] === "number"
-        ) {
-          // Use 3D vehicle icon for current location marker
-          const currentMarker = L.marker(trip.current_location_coordindates, {
-            icon: L.divIcon({
-              className: "custom-div-icon",
-              html: renderToString(
+      // Add current location if trip is not inactive
+      if (
+        trip.status.toLowerCase() !== "inactive" &&
+        Array.isArray(trip.current_location_coordindates) &&
+        trip.current_location_coordindates.length === 2 &&
+        typeof trip.current_location_coordindates[0] === "number" &&
+        typeof trip.current_location_coordindates[1] === "number"
+      ) {
+        // Use 3D vehicle icon for current location marker
+        const currentMarker = L.marker(trip.current_location_coordindates, {
+          icon: L.divIcon({
+            className: "custom-div-icon",
+            html: renderToString(
+              <div
+                style={{
+                  width: "60px",
+                  height: "60px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: 0,
+                  margin: 0,
+                  lineHeight: 1,
+                  position: "relative",
+                  transform: "perspective(120px) rotateX(45deg)",
+                  transformStyle: "preserve-3d",
+                }}>
                 <div
                   style={{
-                    width: "60px",
-                    height: "60px",
+                    width: "45px",
+                    height: "45px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    padding: 0,
-                    margin: 0,
-                    lineHeight: 1,
-                    position: "relative",
-                    transform: "perspective(120px) rotateX(45deg)",
-                    transformStyle: "preserve-3d",
+                    transform: "scale(1.2)",
                   }}>
-                  <div
-                    style={{
-                      width: "45px",
-                      height: "45px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      transform: "scale(1.2)",
-                    }}>
-                    {getVehicle3DSVG(trip.vehicle_type)}
-                  </div>
-                  {/* Status indicator dot */}
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "50%",
-                      left: "50%",
-                      transform: "translate(15px, -15px) rotateX(-45deg) translateZ(15px)",
-                      width: "12px",
-                      height: "12px",
-                      borderRadius: "50%",
-                      backgroundColor: trip.status?.toLowerCase() === "inactive" ? "#6b7280" : "#22c55e",
-                      border: "2px solid white",
-                      boxShadow: "0 2px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.4)",
-                      zIndex: 10,
-                    }}
-                  />
+                  {getVehicle3DSVG(trip.vehicle_type)}
                 </div>
-              ),
-              iconSize: [60, 60],
-              iconAnchor: [30, 20],
-            }),
-          })
-            .addTo(mapInstanceRef.current!)
-            .bindPopup(`
-            <div class="popup-content">
-              <h3>Shipment ID: ${trip.id}</h3>
-              <p><strong>Vehicle Number:</strong> ${trip.Vehicle_number}</p>
-              <p><strong>Driver:</strong> ${trip.driverName}</p>
-              <p><strong>Driver Mobile:</strong> ${trip.driverMobile || "-"}</p>
-              <p><strong>Status:</strong> <span style="color:${getTripStatusColor(trip.status).replace("bg-", "").replace("-500", "")};font-weight:bold">${trip.status}</span></p>
-              <p><strong>Vehicle Status:</strong> <span style="color:${getVehicleStatusColor(trip.Vehicle_status).replace("bg-", "").replace("-500", "")};font-weight:bold">${trip.Vehicle_status}</span></p>
-              <p><strong>Location:</strong> ${trip.cuurent_location_address}</p>
-            </div>
-          `)
+                {/* Status indicator dot */}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(15px, -15px) rotateX(-45deg) translateZ(15px)",
+                    width: "12px",
+                    height: "12px",
+                    borderRadius: "50%",
+                    backgroundColor: trip.status?.toLowerCase() === "inactive" ? "#6b7280" : "#22c55e",
+                    border: "2px solid white",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.4)",
+                    zIndex: 10,
+                  }}
+                />
+              </div>
+            ),
+            iconSize: [60, 60],
+            iconAnchor: [30, 20],
+          }),
+        })
+          .addTo(mapInstanceRef.current!)
+          .bindPopup(`
+          <div class="popup-content">
+            <h3>Shipment ID: ${trip.id}</h3>
+            <p><strong>Vehicle Number:</strong> ${trip.Vehicle_number}</p>
+            <p><strong>Driver:</strong> ${trip.driverName}</p>
+            <p><strong>Driver Mobile:</strong> ${trip.driverMobile || "-"}</p>
+            <p><strong>Status:</strong> <span style="color:${getTripStatusColor(trip.status).replace("bg-", "").replace("-500", "")};font-weight:bold">${trip.status}</span></p>
+            <p><strong>Vehicle Status:</strong> <span style="color:${getVehicleStatusColor(trip.Vehicle_status).replace("bg-", "").replace("-500", "")};font-weight:bold">${trip.Vehicle_status}</span></p>
+            <p><strong>Location:</strong> ${trip.cuurent_location_address}</p>
+          </div>
+        `)
 
-          markersRef.current.push(currentMarker)
-        }
+        markersRef.current.push(currentMarker)
+      }
 
-        // Draw path line only if origin_coordinates are valid and not [0,0]
-        if (
-          completedStops.length > 0 &&
-          Array.isArray(trip.origin_coordinates) &&
-          trip.origin_coordinates.length === 2 &&
-          typeof trip.origin_coordinates[0] === "number" &&
-          typeof trip.origin_coordinates[1] === "number" &&
-          !(trip.origin_coordinates[0] === 0 && trip.origin_coordinates[1] === 0)
-        ) {
-          const pathCoordinates: [number, number][] = [
-            trip.origin_coordinates,
-            ...completedStops.map((_, index) => {
-              const lat = trip.origin_coordinates[0] + (index + 1) * 0.1
-              const lng = trip.origin_coordinates[1] + (index + 1) * 0.1
-              return [lat, lng] as [number, number]
-            }),
-            ...(trip.status.toLowerCase() !== "inactive" &&
-              Array.isArray(trip.current_location_coordindates) &&
-              trip.current_location_coordindates.length === 2 &&
-              typeof trip.current_location_coordindates[0] === "number" &&
-              typeof trip.current_location_coordindates[1] === "number"
-              ? [trip.current_location_coordindates]
-              : []),
-          ]
+      // Draw path line only if origin_coordinates are valid and not [0,0]
+      if (
+        completedStops.length > 0 &&
+        Array.isArray(trip.origin_coordinates) &&
+        trip.origin_coordinates.length === 2 &&
+        typeof trip.origin_coordinates[0] === "number" &&
+        typeof trip.origin_coordinates[1] === "number" &&
+        !(trip.origin_coordinates[0] === 0 && trip.origin_coordinates[1] === 0)
+      ) {
+        const pathCoordinates: [number, number][] = [
+          trip.origin_coordinates,
+          ...completedStops.map((_, index) => {
+            const lat = trip.origin_coordinates[0] + (index + 1) * 0.1
+            const lng = trip.origin_coordinates[1] + (index + 1) * 0.1
+            return [lat, lng] as [number, number]
+          }),
+          ...(trip.status.toLowerCase() !== "inactive" &&
+            Array.isArray(trip.current_location_coordindates) &&
+            trip.current_location_coordindates.length === 2 &&
+            typeof trip.current_location_coordindates[0] === "number" &&
+            typeof trip.current_location_coordindates[1] === "number"
+            ? [trip.current_location_coordindates]
+            : []),
+        ]
 
-          const pathLine = L.polyline(pathCoordinates, {
-            color: "#dc2626",
-            weight: 3,
-            opacity: 0.7,
-          }).addTo(mapInstanceRef.current!)
+        const pathLine = L.polyline(pathCoordinates, {
+          color: "#dc2626",
+          weight: 3,
+          opacity: 0.7,
+        }).addTo(mapInstanceRef.current!)
 
-          markersRef.current.push(pathLine as any)
-        }
-      })
+        markersRef.current.push(pathLine as any)
+      }
     }
 
     // Fit map to show all markers
@@ -403,7 +407,7 @@ export function TripMap({
         mapInstanceRef.current.fitBounds(group.getBounds().pad(0.1))
       }
     }
-  }, [trips, mapMode, mapLoaded])
+  }, [trips, mapMode, mapLoaded, selected]) // <-- add selected to deps
 
   // Fullscreen handler (toggle state, no browser fullscreen API)
   const handleFullscreen = () => {
@@ -601,6 +605,14 @@ export function TripMap({
           {!mapLoaded && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+            </div>
+          )}
+          {/* Show overlay message if in path mode and no trip is selected */}
+          {mapMode !== "current" && !selected && (
+            <div className="absolute inset-0 flex items-center justify-center z-[2000] pointer-events-none">
+              <div className="bg-white/90 dark:bg-gray-900/90 rounded-lg shadow-lg px-6 py-4 text-center text-gray-700 dark:text-gray-200 text-lg font-semibold border border-gray-300 dark:border-gray-700">
+                Please select a trip from the list to view its path.
+              </div>
             </div>
           )}
         </div>
