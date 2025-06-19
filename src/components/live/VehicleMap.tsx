@@ -438,7 +438,7 @@ const VehicleMap = ({ vehicles, loading, filters, onFilterChange }: VehicleMapPr
                             {vehicle.status}
                           </span>
                         </div>
-                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{vehicle.address}</p>
+                        {/* <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{vehicle.address}</p> */}
                       </div>
                     </div>
                   </motion.li>

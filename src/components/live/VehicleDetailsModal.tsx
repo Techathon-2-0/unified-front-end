@@ -13,7 +13,7 @@ import {
   Phone,
   Package,
   Building,
-  Bell,
+  //Bell,
   Key,
   Globe,
   Lock,
@@ -697,7 +697,7 @@ const VehicleDetailsModal = ({ vehicle, onClose }: VehicleDetailsModalProps) => 
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center">
+                  {/* <div className="flex items-center">
                     <Bell className="h-5 w-5 text-blue-500 dark:text-blue-400 mr-3" />
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400">Last Alarm</p>
@@ -705,7 +705,7 @@ const VehicleDetailsModal = ({ vehicle, onClose }: VehicleDetailsModalProps) => 
                         {vehicle.lastAlarm || "No Data"}
                       </p>
                     </div>
-                  </div>
+                  </div> */}
                   <div className="flex items-center">
                     <Key className="h-5 w-5 text-blue-500 dark:text-blue-400 mr-3" />
                     <div>

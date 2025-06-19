@@ -9,7 +9,7 @@ import { convertToGeofenceVehicles } from "../../data/geofence/gstats"
 import { fetchGeofencesbyuserid } from "../../data/geofence/gconfig"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/context/AuthContext"
-import type { Geofence } from "../../types/geofence/gstats_type"
+import type { Geofence, SortField, SortDirection } from "../../types/geofence/gstats_type"
 
 
 export default function GeofenceStats() {
@@ -75,6 +75,126 @@ export default function GeofenceStats() {
   const geofenceVehicles = useMemo(() => {
     return convertToGeofenceVehicles(vehicles, selectedGeofenceData)
   }, [vehicles, selectedGeofenceData])
+
+  // Filter states (lifted from GeofenceMatrix)
+  const [typeFilter, setTypeFilter] = useState<string[]>([])
+  const [statusFilter, setStatusFilter] = useState<string[]>([])
+  const [tripStatusFilter, setTripStatusFilter] = useState<string[]>([])
+  const [groupFilter, setGroupFilter] = useState<string[]>([])
+  const [locationFilter, setLocationFilter] = useState<string[]>([])
+  const [searchTerm, setSearchTerm] = useState("")
+  const [sortField, setSortField] = useState<SortField>("vehicleNumber")
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
+
+  // Filtering logic (copied from GeofenceMatrix)
+  const filteredAndSortedVehicles = useMemo(() => {
+    let filtered = convertToGeofenceVehicles(vehicles, selectedGeofenceData)
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (vehicle) =>
+          vehicle.vehicleNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (vehicle.shipmentId && vehicle.shipmentId.toLowerCase().includes(searchTerm.toLowerCase())),
+      )
+    }
+
+    // Apply type filter (OR logic)
+    if (typeFilter.length > 0) {
+      filtered = filtered.filter((vehicle) => typeFilter.includes(vehicle.type))
+    }
+
+    // Apply status filter (OR logic)
+    if (statusFilter.length > 0) {
+      filtered = filtered.filter((vehicle) => statusFilter.includes(vehicle.status))
+    }
+
+    // Apply trip status filter (OR logic)
+    if (tripStatusFilter.length > 0) {
+      filtered = filtered.filter((vehicle) => tripStatusFilter.includes(vehicle.trip_status))
+    }
+
+    // Apply group filter (OR logic)
+    if (groupFilter.length > 0) {
+      filtered = filtered.filter((vehicle) => vehicle.group && groupFilter.some((g) => vehicle.group.includes(g)))
+    }
+
+    // Apply location filter (OR logic)
+    if (matrixType === "geofence" && locationFilter.length > 0) {
+      filtered = filtered.filter((vehicle) => locationFilter.includes(vehicle.geofenceStatus))
+    }
+
+    // Apply sorting
+    const sorted = [...filtered].sort((a, b) => {
+      // Always show vehicles with lat/lng at the top
+      const aHasLatLng =
+        a.lat !== undefined &&
+        a.lat !== null &&
+        a.lat.toString() !== "" &&
+        a.lng !== undefined &&
+        a.lng !== null &&
+        a.lng.toString() !== ""
+      const bHasLatLng =
+        b.lat !== undefined &&
+        b.lng !== null &&
+        b.lat.toString() !== "" &&
+        b.lng !== undefined &&
+        b.lng !== null &&
+        b.lng.toString() !== ""
+
+      if (aHasLatLng && !bHasLatLng) return -1
+      if (!aHasLatLng && bHasLatLng) return 1
+
+      let aValue: any
+      let bValue: any
+
+      switch (sortField) {
+        case "vehicleNumber":
+          aValue = a.vehicleNumber.toLowerCase()
+          bValue = b.vehicleNumber.toLowerCase()
+          break
+        case "type":
+          aValue = a.type.toLowerCase()
+          bValue = b.type.toLowerCase()
+          break
+        case "status":
+          aValue = a.status.toLowerCase()
+          bValue = b.status.toLowerCase()
+          break
+        case "distanceFromGeofence":
+          aValue = a.distanceFromGeofence
+          bValue = b.distanceFromGeofence
+          break
+        case "gpsTime":
+          aValue = a.gpsTime || ""
+          bValue = b.gpsTime || ""
+          break
+        default:
+          aValue = a.vehicleNumber.toLowerCase()
+          bValue = b.vehicleNumber.toLowerCase()
+      }
+
+      if (sortDirection === "asc") {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
+      }
+    })
+
+    return sorted
+  }, [
+    vehicles,
+    selectedGeofenceData,
+    searchTerm,
+    typeFilter,
+    statusFilter,
+    tripStatusFilter,
+    groupFilter,
+    locationFilter,
+    matrixType,
+    sortField,
+    sortDirection,
+  ])
 
   const handleRefresh = () => {
     // Only refresh vehicle data, not the whole page
@@ -240,6 +360,7 @@ export default function GeofenceStats() {
     setFilteredCount(count)
   }
 
+  // Pass filter state and handlers to GeofenceMatrix
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
@@ -257,7 +378,7 @@ export default function GeofenceStats() {
       {/* Main Content */}
       {isMapFullScreen ? (
         <GeofenceMap
-          vehicles={geofenceVehicles}
+          vehicles={filteredAndSortedVehicles}
           selectedGeofence={selectedGeofence}
           matrixType={matrixType}
           highlightedVehicle={highlightedVehicle}
@@ -273,7 +394,7 @@ export default function GeofenceStats() {
           {/* Left Panel */}
           <div className="w-1/2 p-6 overflow-auto">
             <GeofenceMatrix
-              vehicles={geofenceVehicles}
+              vehicles={filteredAndSortedVehicles}
               selectedGeofence={selectedGeofence}
               matrixType={matrixType}
               onVehicleClick={handleVehicleClick}
@@ -281,13 +402,31 @@ export default function GeofenceStats() {
               onFilteredCountChange={handleFilteredCountChange}
               onAlertClick={handleAlertClick}
               onMatrixTypeChange={handleMatrixTypeChange}
+              // Pass filter state and handlers
+              typeFilter={typeFilter}
+              setTypeFilter={setTypeFilter}
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+              tripStatusFilter={tripStatusFilter}
+              setTripStatusFilter={setTripStatusFilter}
+              groupFilter={groupFilter}
+              setGroupFilter={setGroupFilter}
+              locationFilter={locationFilter}
+              setLocationFilter={setLocationFilter}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              sortField={sortField}
+              setSortField={setSortField}
+              sortDirection={sortDirection}
+              setSortDirection={setSortDirection}
+              allVehicles={convertToGeofenceVehicles(vehicles, selectedGeofenceData)}
             />
           </div>
 
           {/* Right Panel - Map */}
           <div className="w-1/2 p-6 relative z-10">
             <GeofenceMap
-              vehicles={geofenceVehicles}
+              vehicles={filteredAndSortedVehicles}
               selectedGeofence={selectedGeofence}
               matrixType={matrixType}
               highlightedVehicle={highlightedVehicle}

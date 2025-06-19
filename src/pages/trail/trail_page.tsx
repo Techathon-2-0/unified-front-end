@@ -22,7 +22,7 @@ import TrailTypeSelector from "@/components/trail/trail-type-selector"
 import VehicleDetails from "@/components/trail/vehicle-details"
 import SpeedChart from "@/components/trail/speed-chart"
 import { fetchVehicleTrail, fetchTripTrail } from "../../data/trail/traildata"
-import type { VehicleTrailResponse, TripTrailResponse } from "../../data/trail/traildata"
+import type { VehicleTrailResponse, TripTrailResponse } from "../../types/trail/trail_type"
 import type { TrailType } from "../../types/trail/trail_type"
 
 const TrailMap = lazy(() => import("@/components/trail/trail-map"))
@@ -30,11 +30,11 @@ const TrailMap = lazy(() => import("@/components/trail/trail-map"))
 export default function TrailPage() {
   const [trailType, setTrailType] = useState<TrailType>("vehicle")
   const [dateRange, setDateRange] = useState<{
-    from: Date
-    to: Date
+    from: Date | undefined
+    to: Date | undefined
   }>({
-    from: new Date(new Date().setHours(0, 0, 0, 0)),
-    to: new Date(new Date().setHours(23, 59, 59, 999)),
+    from: undefined,
+    to: undefined,
   })
 
   // Search states
@@ -72,8 +72,8 @@ export default function TrailPage() {
     setShowTrailControls(false)
 
     try {
-      const startTime = dateRange.from.toISOString()
-      const endTime = dateRange.to.toISOString()
+      const startTime = dateRange.from ? dateRange.from.toISOString() : ""
+      const endTime = dateRange.to ? dateRange.to.toISOString() : ""
 
       const data = await fetchVehicleTrail(vehicleSearch.trim(), startTime, endTime)
 
@@ -319,9 +319,7 @@ export default function TrailPage() {
                     <DatePickerWithRange
                       dateRange={dateRange}
                       onChange={(range) => {
-                        if (range.from && range.to) {
-                          setDateRange({ from: range.from, to: range.to })
-                        }
+                        setDateRange({ from: range.from, to: range.to })
                       }}
                     />
                   </div>
@@ -566,16 +564,45 @@ export default function TrailPage() {
                 <div className="flex items-center space-x-2 min-w-0">
                   <MapPin className="text-gray-500 dark:text-gray-400 flex-shrink-0" size={20} />
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
+                    {/* Tooltip for address */}
+                    <div className="relative group max-w-xs">
+                      <div className="truncate cursor-default text-sm max-w-[170px]">
+                        {(() => {
+                          if (trailType === "trip" && showPlannedSequence && tripData?.stops) {
+                            const sortedStops = [...tripData.stops].sort((a, b) => a.plannedSequence - b.plannedSequence)
+                            const currentStop = sortedStops[currentPointIndex]
+                            return currentStop ? currentStop.stopName : "Unknown Stop"
+                          }
+                          return currentPoint?.address || "Unknown Location"
+                        })()}
+                      </div>
+                      {/* Tooltip only if address exists and not in planned stops mode */}
                       {(() => {
                         if (trailType === "trip" && showPlannedSequence && tripData?.stops) {
                           const sortedStops = [...tripData.stops].sort((a, b) => a.plannedSequence - b.plannedSequence)
                           const currentStop = sortedStops[currentPointIndex]
-                          return currentStop ? currentStop.stopName : "Unknown Stop"
+                          return currentStop?.stopName ? (
+                            <div className="absolute left-0 bottom-full mb-2 px-3 py-2 bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-md shadow-xl border border-slate-700 z-10 min-w-0 w-max max-w-[300px] break-words whitespace-normal opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out transform group-hover:-translate-y-1 translate-y-1">
+                              <div className="font-medium text-slate-100 leading-snug break-words">
+                                {currentStop.stopName}
+                              </div>
+                              <div className="absolute -bottom-1 left-4 w-2 h-2 bg-slate-900 dark:bg-slate-800 border-r border-b border-slate-700 transform rotate-45"></div>
+                            </div>
+                          ) : null
                         }
-                        return currentPoint?.address || "Unknown Location"
+                        if (currentPoint?.address) {
+                          return (
+                            <div className="absolute left-0 bottom-full mb-2 px-3 py-2 bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-md shadow-xl border border-slate-700 z-10 min-w-0 w-max max-w-[300px] break-words whitespace-normal opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out transform group-hover:-translate-y-1 translate-y-1">
+                              <div className="font-medium text-slate-100 leading-snug break-words">
+                                {currentPoint.address}
+                              </div>
+                              <div className="absolute -bottom-1 left-4 w-2 h-2 bg-slate-900 dark:bg-slate-800 border-r border-b border-slate-700 transform rotate-45"></div>
+                            </div>
+                          )
+                        }
+                        return null
                       })()}
-                    </p>
+                    </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       {(() => {
                         if (trailType === "trip" && showPlannedSequence && tripData?.stops) {

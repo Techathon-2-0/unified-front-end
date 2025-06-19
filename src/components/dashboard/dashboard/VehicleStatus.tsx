@@ -197,9 +197,21 @@ const VehicleStatus: React.FC = () => {
                       <td className="px-3 sm:px-4 py-4 min-w-[200px]">
                         <div className="flex items-center space-x-1 min-w-0">
                           <MapPin size={12} className="text-gray-400 dark:text-gray-500 flex-shrink-0" />
-                          <span className="text-xs text-gray-600 dark:text-gray-400 truncate">
-                            {vehicle.address || "No data"}
-                          </span>
+                          <div className="relative group max-w-xs">
+                          <div className="truncate cursor-default">
+                            {vehicle.address || "No address"}
+                          </div>
+                          {vehicle.address && (
+                            <div className="absolute left-0 bottom-full mb-2 px-3 py-2 bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-md shadow-xl border border-slate-700 z-10 min-w-0 w-max max-w-[400px] break-words whitespace-normal opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out transform group-hover:-translate-y-1 translate-y-1">
+                              <div className="font-medium text-slate-100 leading-snug break-words">
+                                {vehicle.address}
+                              </div>
+
+                              {/* Tooltip arrow pointing down */}
+                              <div className="absolute -bottom-1 left-4 w-2 h-2 bg-slate-900 dark:bg-slate-800 border-r border-b border-slate-700 transform rotate-45"></div>
+                            </div>
+                          )}
+                        </div>
                         </div>
                       </td>
                     </tr>

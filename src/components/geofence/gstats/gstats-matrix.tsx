@@ -39,19 +39,45 @@ export function GeofenceMatrix({
   onFilteredCountChange,
   onAlertClick,
   onMatrixTypeChange,
-}: GeofenceMatrixProps) {
+  // New props for filters and sorting
+  typeFilter,
+  setTypeFilter,
+  statusFilter,
+  setStatusFilter,
+  tripStatusFilter,
+  setTripStatusFilter,
+  groupFilter,
+  setGroupFilter,
+  locationFilter,
+  setLocationFilter,
+  searchTerm,
+  setSearchTerm,
+  sortField,
+  setSortField,
+  sortDirection,
+  setSortDirection,
+  allVehicles,
+}: GeofenceMatrixProps & {
+  typeFilter: string[]
+  setTypeFilter: (v: string[]) => void
+  statusFilter: string[]
+  setStatusFilter: (v: string[]) => void
+  tripStatusFilter: string[]
+  setTripStatusFilter: (v: string[]) => void
+  groupFilter: string[]
+  setGroupFilter: (v: string[]) => void
+  locationFilter: string[]
+  setLocationFilter: (v: string[]) => void
+  searchTerm: string
+  setSearchTerm: (v: string) => void
+  sortField: SortField
+  setSortField: (v: SortField) => void
+  sortDirection: SortDirection
+  setSortDirection: (v: SortDirection) => void
+  allVehicles: any[]
+}) {
   const [currentPage, setCurrentPage] = useState(1)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [sortField, setSortField] = useState<SortField>("vehicleNumber")
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
-  // Change filter states to arrays for multi-select
-  const [typeFilter, setTypeFilter] = useState<string[]>([])
-  const [statusFilter, setStatusFilter] = useState<string[]>([])
-  const [tripStatusFilter, setTripStatusFilter] = useState<string[]>([])
-  const [groupFilter, setGroupFilter] = useState<string[]>([])
-  const [locationFilter, setLocationFilter] = useState<string[]>([])
   const [groups, setGroups] = useState<Group[]>([])
-  const itemsPerPage = 5
   const { user } = useAuth()
   const { showErrorToast, Toaster } = useToast({ position: "top-right" })
 
@@ -87,154 +113,60 @@ export function GeofenceMatrix({
     return <ChevronUp className="h-4 w-4 ml-1 text-gray-400" />
   }
 
-  // Get unique vehicle types
+  // Get unique vehicle types/statuses/tripStatuses from allVehicles (not filtered)
   const vehicleTypes = useMemo(() => {
     const types = new Set<string>()
-    vehicles.forEach((vehicle) => {
+    allVehicles.forEach((vehicle) => {
       if (vehicle.type) types.add(vehicle.type)
     })
     return Array.from(types).sort()
-  }, [vehicles])
+  }, [allVehicles])
 
-  // Get unique vehicle statuses
   const vehicleStatuses = useMemo(() => {
     const statuses = new Set<string>()
-    vehicles.forEach((vehicle) => {
+    allVehicles.forEach((vehicle) => {
       if (vehicle.status) statuses.add(vehicle.status)
     })
     return Array.from(statuses).sort()
-  }, [vehicles])
+  }, [allVehicles])
 
-  // Get unique trip statuses
   const tripStatuses = useMemo(() => {
     const statuses = new Set<string>()
-    vehicles.forEach((vehicle) => {
+    allVehicles.forEach((vehicle) => {
       if (vehicle.trip_status) statuses.add(vehicle.trip_status)
     })
     return Array.from(statuses).sort()
-  }, [vehicles])
+  }, [allVehicles])
 
   // Helper for toggling multi-select filter values
   const toggleFilterValue = (filter: string[], setFilter: (v: string[]) => void, value: string) => {
     setFilter(filter.includes(value) ? filter.filter((v) => v !== value) : [...filter, value])
   }
 
-  // Filter and sort vehicles
+  // Filtered and sorted vehicles for pagination and display
   const filteredAndSortedVehicles = useMemo(() => {
-    let filtered = vehicles
-
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (vehicle) =>
-          vehicle.vehicleNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (vehicle.shipmentId && vehicle.shipmentId.toLowerCase().includes(searchTerm.toLowerCase())),
-      )
+    let result = [...vehicles];
+    // Sorting logic
+    if (sortField) {
+      result.sort((a, b) => {
+        let aValue = a[sortField];
+        let bValue = b[sortField];
+        if (typeof aValue === "string" && typeof bValue === "string") {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        }
+        if (aValue === undefined || aValue === null) return 1;
+        if (bValue === undefined || bValue === null) return -1;
+        if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+        return 0;
+      });
     }
-
-    // Apply type filter (OR logic)
-    if (typeFilter.length > 0) {
-      filtered = filtered.filter((vehicle) => typeFilter.includes(vehicle.type))
-    }
-
-    // Apply status filter (OR logic)
-    if (statusFilter.length > 0) {
-      filtered = filtered.filter((vehicle) => statusFilter.includes(vehicle.status))
-    }
-
-    // Apply trip status filter (OR logic)
-    if (tripStatusFilter.length > 0) {
-      filtered = filtered.filter((vehicle) => tripStatusFilter.includes(vehicle.trip_status))
-    }
-
-    // Apply group filter (OR logic)
-    if (groupFilter.length > 0) {
-      filtered = filtered.filter((vehicle) => vehicle.group && groupFilter.some((g) => vehicle.group.includes(g)))
-    }
-
-    // Apply location filter (OR logic)
-    if (matrixType === "geofence" && locationFilter.length > 0) {
-      filtered = filtered.filter((vehicle) => locationFilter.includes(vehicle.geofenceStatus))
-    }
-
-    // Apply sorting
-    const sorted = [...filtered].sort((a, b) => {
-      // Always show vehicles with lat/lng at the top
-      const aHasLatLng =
-        a.lat !== undefined &&
-        a.lat !== null &&
-        a.lat.toString() !== "" &&
-        a.lng !== undefined &&
-        a.lng !== null &&
-        a.lng.toString() !== ""
-      const bHasLatLng =
-        b.lat !== undefined &&
-        b.lng !== null &&
-        b.lat.toString() !== "" &&
-        b.lng !== undefined &&
-        b.lng !== null &&
-        b.lng.toString() !== ""
-
-      if (aHasLatLng && !bHasLatLng) return -1
-      if (!aHasLatLng && bHasLatLng) return 1
-
-      // ...existing code (sort by sortField)...
-      let aValue: any
-      let bValue: any
-
-      switch (sortField) {
-        case "vehicleNumber":
-          aValue = a.vehicleNumber.toLowerCase()
-          bValue = b.vehicleNumber.toLowerCase()
-          break
-        case "type":
-          aValue = a.type.toLowerCase()
-          bValue = b.type.toLowerCase()
-          break
-        case "status":
-          aValue = a.status.toLowerCase()
-          bValue = b.status.toLowerCase()
-          break
-        case "distanceFromGeofence":
-          aValue = a.distanceFromGeofence
-          bValue = b.distanceFromGeofence
-          break
-        case "gpsTime":
-          aValue = a.gpsTime || ""
-          bValue = b.gpsTime || ""
-          break
-        default:
-          aValue = a.vehicleNumber.toLowerCase()
-          bValue = b.vehicleNumber.toLowerCase()
-      }
-
-      if (sortDirection === "asc") {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
-      } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
-      }
-    })
-
-    return sorted
-  }, [
-    vehicles,
-    searchTerm,
-    sortField,
-    sortDirection,
-    typeFilter,
-    statusFilter,
-    tripStatusFilter,
-    groupFilter,
-    locationFilter,
-    matrixType,
-  ])
-
-  // Update filtered count whenever filteredAndSortedVehicles changes
-  useEffect(() => {
-    onFilteredCountChange(filteredAndSortedVehicles.length)
-  }, [filteredAndSortedVehicles.length, onFilteredCountChange])
+    return result;
+  }, [vehicles, sortField, sortDirection]);
 
   // Pagination
+  const itemsPerPage = 5
   const totalPages = Math.ceil(filteredAndSortedVehicles.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
@@ -242,31 +174,28 @@ export function GeofenceMatrix({
 
   // Statistics for distance matrix
   const distanceStats = useMemo(() => {
-    // Distance distribution based on filtered vehicles
     const distanceRanges = {
-      "0-2 Km": filteredAndSortedVehicles.filter((v) => v.distanceFromGeofence >= 0 && v.distanceFromGeofence <= 2)
-        .length,
-      "2-5 Km": filteredAndSortedVehicles.filter((v) => v.distanceFromGeofence > 2 && v.distanceFromGeofence <= 5)
-        .length,
-      "5-10 Km": filteredAndSortedVehicles.filter((v) => v.distanceFromGeofence > 5 && v.distanceFromGeofence <= 10)
-        .length,
-      "10-20 Km": filteredAndSortedVehicles.filter((v) => v.distanceFromGeofence > 10 && v.distanceFromGeofence <= 20)
-        .length,
-      "20-50 Km": filteredAndSortedVehicles.filter((v) => v.distanceFromGeofence > 20 && v.distanceFromGeofence <= 50)
-        .length,
-      "50+ Km": filteredAndSortedVehicles.filter((v) => v.distanceFromGeofence > 50).length,
+      "0-2 Km": vehicles.filter((v) => v.distanceFromGeofence >= 0 && v.distanceFromGeofence <= 2).length,
+      "2-5 Km": vehicles.filter((v) => v.distanceFromGeofence > 2 && v.distanceFromGeofence <= 5).length,
+      "5-10 Km": vehicles.filter((v) => v.distanceFromGeofence > 5 && v.distanceFromGeofence <= 10).length,
+      "10-20 Km": vehicles.filter((v) => v.distanceFromGeofence > 10 && v.distanceFromGeofence <= 20).length,
+      "20-50 Km": vehicles.filter((v) => v.distanceFromGeofence > 20 && v.distanceFromGeofence <= 50).length,
+      "50+ Km": vehicles.filter((v) => v.distanceFromGeofence > 50).length,
     }
-
     return distanceRanges
-  }, [filteredAndSortedVehicles])
+  }, [vehicles])
 
   // Statistics for geofence matrix
   const geofenceStats = useMemo(() => {
-    const insideCount = filteredAndSortedVehicles.filter((v) => v.geofenceStatus === "inside").length
-    const outsideCount = filteredAndSortedVehicles.filter((v) => v.geofenceStatus === "outside").length
-
+    const insideCount = vehicles.filter((v) => v.geofenceStatus === "inside").length
+    const outsideCount = vehicles.filter((v) => v.geofenceStatus === "outside").length
     return { insideCount, outsideCount }
-  }, [filteredAndSortedVehicles])
+  }, [vehicles])
+
+  // Update filtered count whenever vehicles changes
+  useEffect(() => {
+    onFilteredCountChange(vehicles.length)
+  }, [vehicles.length, onFilteredCountChange])
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)

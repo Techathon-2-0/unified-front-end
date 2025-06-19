@@ -146,7 +146,7 @@ export function TripMap({
             icon: L.divIcon({
               className: "custom-div-icon",
               html: `<div class="current-location-marker ${trip.status.toLowerCase()}">
-                <div class="marker-inner">${trip.Vehicle_number}</div>
+                
               </div>`,
               iconSize: [40, 40],
               iconAnchor: [20, 20],

@@ -37,6 +37,7 @@ export interface Vehicle {
   lng: number
   trip_status: string
   lastgpstime: string
+  digitalInput1: boolean
 }
 
 export interface VehicleFilter {

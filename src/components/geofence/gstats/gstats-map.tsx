@@ -455,9 +455,22 @@ export function GeofenceMap({
         // Fallback: center on geofence coordinates
         map.setView([selectedGeofenceData.latitude, selectedGeofenceData.longitude], 13)
       } else if (vehicles.length > 0) {
-        // If no geofence selected, fit to all vehicles
-        const vehicleBounds = L.latLngBounds(vehicles.map((v) => [v.lat, v.lng]))
-        map.fitBounds(vehicleBounds.pad(0.2))
+        // If no geofence selected, fit to all vehicles with valid lat/lng only
+        const validVehiclePositions = vehicles
+          .filter(
+            (v) =>
+              v.lat !== undefined &&
+              v.lat !== null &&
+              v.lat.toString() !== "" &&
+              v.lng !== undefined &&
+              v.lng !== null &&
+              v.lng.toString() !== ""
+          )
+          .map((v) => [v.lat, v.lng])
+        if (validVehiclePositions.length > 0) {
+          const vehicleBounds = L.latLngBounds(validVehiclePositions)
+          map.fitBounds(vehicleBounds.pad(0.2))
+        }
       }
 
       // Add CSS for pulsing effect
@@ -497,8 +510,22 @@ export function GeofenceMap({
       if (selectedGeofenceData) {
         map.setView([selectedGeofenceData.latitude, selectedGeofenceData.longitude], 13)
       } else if (vehicles.length > 0) {
-        const vehicleBounds = mapInstance.L.latLngBounds(vehicles.map((v: any) => [v.lat, v.lng]))
-        map.fitBounds(vehicleBounds.pad(0.2))
+        // Only use vehicles with valid lat/lng
+        const validVehiclePositions = vehicles
+          .filter(
+            (v: any) =>
+              v.lat !== undefined &&
+              v.lat !== null &&
+              v.lat.toString() !== "" &&
+              v.lng !== undefined &&
+              v.lng !== null &&
+              v.lng.toString() !== ""
+          )
+          .map((v: any) => [v.lat, v.lng])
+        if (validVehiclePositions.length > 0) {
+          const vehicleBounds = mapInstance.L.latLngBounds(validVehiclePositions)
+          map.fitBounds(vehicleBounds.pad(0.2))
+        }
       }
     }
   }

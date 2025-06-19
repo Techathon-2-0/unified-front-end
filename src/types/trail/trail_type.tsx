@@ -1,5 +1,4 @@
 import type { DateRange } from "react-day-picker"
-import type { VehicleTrailResponse, TripTrailResponse } from "../../data/trail/traildata"
 
 export type TrailType = "vehicle" | "trip"
 
@@ -78,3 +77,80 @@ export interface CustomLeafletMap extends L.Map {
   normalLayer?: L.TileLayer;
   satelliteLayer?: L.TileLayer;
 }
+
+// Vehicle Trail Response Interface
+export interface VehicleTrailResponse {
+  vehicleNumber: string
+  vehicleId: string
+  totalPoints: number
+  dateRange: {
+    startTime: string
+    endTime: string
+  }
+  trailPoints: Array<{
+    id: number
+    timestamp: number
+    time: string
+    address: string
+    latitude: number
+    longitude: number
+    speed: number
+    heading: number
+    gpstimestamp: number
+    gprstime: string
+  }>
+  metrics: {
+    totalTime: number
+    totalTimeFormatted: string
+    avgSpeed: number
+    totalDistance: number
+  }
+}
+
+// Trip Trail Response Interface
+export interface TripTrailResponse {
+  shipmentId: string
+  routeName: string
+  vehicleNumber: string
+  driverName: string
+  driverMobile: string
+  status: string
+  startLocation: string
+  endLocation: string
+  totalDistance: string
+  stops: Array<{
+    id: number
+    locationId: string
+    stopName: string
+    stopType: string
+    latitude: number
+    longitude: number
+    address: string
+    plannedSequence: number
+    actualSequence: number
+    entryTime: string | null
+    exitTime: string | null
+    geoFenceRadius: number
+    status: string
+    customerName: string
+    lrNumber: string
+  }>
+  trailPoints: Array<{
+    id: number
+    timestamp: number
+    time: string
+    address: string
+    latitude: number
+    longitude: number
+    speed: number
+    heading: number
+    gpstimestamp: number
+  }>
+  metrics: {
+    totalTime: number
+    totalTimeFormatted: string
+    avgSpeed: number
+    totalDistance: number
+  }
+}
+

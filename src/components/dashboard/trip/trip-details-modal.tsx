@@ -18,7 +18,7 @@ import {
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { formatDate } from "../../../components/formatdate"
+//import { formatDate } from "../../../components/formatdate"
 import {
   fetchIntutrackData,
   refreshIntutrackData,
@@ -74,19 +74,18 @@ export function TripDetailsModal({
     }
   }
 
-  // ...existing code...
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
-      case "delivered":
       case "on_time":
         return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
       case "delayed":
         return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+      case "completed":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
       default:
         return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300"
     }
   }
-  // ...existing code...
 
   // Helper to check if a date string is valid and in the future
   const getDateStatus = (dateStr?: string) => {
@@ -474,7 +473,7 @@ export function TripDetailsModal({
         initial="hidden"
         animate="visible"
         exit="exit"
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
@@ -521,8 +520,8 @@ export function TripDetailsModal({
             <button
               onClick={() => handleTabChange("stops")}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "stops"
-                  ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
                 }`}
             >
               <div className="flex items-center gap-2">
@@ -533,8 +532,8 @@ export function TripDetailsModal({
             <button
               onClick={() => handleTabChange("trip")}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "trip"
-                  ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
                 }`}
             >
               <div className="flex items-center gap-2">
@@ -545,8 +544,8 @@ export function TripDetailsModal({
             <button
               onClick={() => handleTabChange("registration")}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "registration"
-                  ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
                 }`}
             >
               <div className="flex items-center gap-2">
@@ -558,8 +557,8 @@ export function TripDetailsModal({
               <button
                 onClick={() => handleTabChange("intutrack")}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === "intutrack"
-                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                  ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
                   }`}
               >
                 <div className="flex items-center gap-2">
@@ -582,6 +581,7 @@ export function TripDetailsModal({
                     {/* <th className="py-2 px-6 text-left border-b whitespace-nowrap">Location ID</th> */}
                     <th className="py-2 px-6 text-center border-b whitespace-nowrap">Stop Type</th>
                     <th className="py-2 px-6 text-center border-b whitespace-nowrap">LR Number</th>
+                    <th className="py-2 px-6 text-center border-b whitespace-nowrap">Location Name</th>
                     <th className="py-2 px-6 text-center border-b whitespace-nowrap">Customer Name</th>
                     <th className="py-2 px-6 text-center border-b whitespace-nowrap">Location</th>
                     <th className="py-2 px-6 text-center border-b whitespace-nowrap">ETA</th>
@@ -596,25 +596,45 @@ export function TripDetailsModal({
                 <tbody>
                   {selectedTrip.planned_stops.map((stop) => (
                     <tr key={stop.planned_stop} className="border-b border-gray-200 dark:border-gray-700">
-                      <td className="py-2 pl-3 text-center px-6">{stop.planned_stop}</td>
+                      <td className="py-2 pl-3 text-center px-6">{stop.planned_stop || "-"}</td>
                       {/* <td className="py-2 px-6 whitespace-nowrap">{stop.location_id}</td> */}
-                      <td className="py-2 px-6 text-center whitespace-nowrap">{stop.stop_type}</td>
-                      <td className="py-2 px-6 text-center whitespace-nowrap">{stop.lr_number}</td>
-                      <td className="py-2 px-6 text-center whitespace-nowrap">{stop.customer_name}</td>
-                      <td className="py-2 px-6 text-center whitespace-nowrap">{stop.pickup_location}</td>
+                      <td className="py-2 px-6 text-center whitespace-nowrap">{stop.stop_type || "-"}</td>
+                      <td className="py-2 px-6 text-center whitespace-nowrap">{stop.lr_number || "-"}</td>
+                      <td className="py-2 px-6 text-center whitespace-nowrap">{stop.geofence_name || "-"}</td>
+                      <td className="py-2 px-6 text-center whitespace-nowrap">{stop.customer_name || "-"}</td>
+                      <td className="py-2 px-6 text-center whitespace-nowrap">
+                        <div className="relative group max-w-xs">
+                          <div className="truncate cursor-default max-w-[200px]">
+                            {stop.pickup_location || "-"}
+
+                          </div>
+                          {stop.pickup_location && (
+                            <div className="absolute left-0 bottom-full mb-2 px-3 py-2 bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-md shadow-xl border border-slate-700 z-10 min-w-0 w-max max-w-[400px] break-words whitespace-normal opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out transform group-hover:-translate-y-1 translate-y-1">
+                              <div className="font-medium text-slate-100 leading-snug break-words">
+                                {stop.pickup_location}
+                              </div>
+
+                              {/* Tooltip arrow pointing down */}
+                              <div className="absolute -bottom-1 left-4 w-2 h-2 bg-slate-900 dark:bg-slate-800 border-r border-b border-slate-700 transform rotate-45"></div>
+                            </div>
+                          )}
+                        </div>
+
+                      </td>
+
                       <td className="py-2 px-6 text-center whitespace-nowrap">
                         <div className="space-y-3">
-                          <div className="text-xs">CETA: {stop.ceta}</div>
-                          <div className="text-xs">GETA: {stop.geta}</div>
+                          <div className="text-xs">C-ETA: {stop.ceta}</div>
+                          <div className="text-xs">G-ETA: {stop.geta}</div>
                         </div>
                       </td>
-                      <td className="py-2 px-6 text-center">{stop.actual_sequence}</td>
-                      <td className="py-2 px-6 text-center whitespace-nowrap">{stop.entry_time}</td>
-                      <td className="py-2 px-6 text-center whitespace-nowrap">{stop.exit_time}</td>
-                      <td className="py-2 px-6 text-center whitespace-nowrap">{stop.loading_unloading_time}</td>
-                      <td className="py-2 px-6 text-center whitespace-nowrap">{stop.detention_time}</td>
+                      <td className="py-2 px-6 text-center">{stop.actual_sequence || "-"}</td>
+                      <td className="py-2 px-6 text-center whitespace-nowrap">{stop.entry_time || "-"}</td>
+                      <td className="py-2 px-6 text-center whitespace-nowrap">{stop.exit_time || "-"}</td>
+                      <td className="py-2 px-6 text-center whitespace-nowrap">{stop.loading_unloading_time || "-"}</td>
+                      <td className="py-2 px-6 text-center whitespace-nowrap">{stop.detention_time || "-"}</td>
                       <td className="py-2 pr-3 px-6 whitespace-nowrap">
-                        <Badge className={getStatusColor(stop.status)}>{stop.status}</Badge>
+                        <Badge className={getStatusColor(stop.status)}>{stop.status || "-"}</Badge>
                       </td>
                     </tr>
                   ))}
@@ -655,27 +675,67 @@ export function TripDetailsModal({
                   <div className="space-y-2 text-sm">
                     <div>
                       <MapPin className="inline h-4 w-4 mr-1 text-blue-500" />
-                      <strong>Current Location:</strong> {selectedTrip.cuurent_location_address}
+                      <strong>Current Location:</strong> {selectedTrip.cuurent_location_address || "-"}
                     </div>
                     <div>
                       <MapPin className="inline h-4 w-4 mr-1 text-blue-500" />
-                      <strong>Origin:</strong> {selectedTrip.origin}
+                      <strong>Origin:</strong> {selectedTrip.origin || "-"}
                     </div>
                     <div>
                       <MapPin className="inline h-4 w-4 mr-1 text-blue-500" />
                       <strong>Destination:</strong> {selectedTrip.destination}
                     </div>
+                   <div>
+                      <FileText className="inline h-4 w-4 mr-1 text-blue-500" />
+                      <strong>Last GPS Ping:</strong> {selectedTrip.last_gps_ping || "-"}
+                    </div>
                     <div>
                       <FileText className="inline h-4 w-4 mr-1 text-blue-500" />
-                      <strong>Last GPS Ping:</strong> {formatDate(selectedTrip.last_gps_ping)}
+                      <strong>Last GPS Vendor:</strong> {selectedTrip.last_gps_vendor || "-"}
                     </div>
                   </div>
                 </div>
               </div>
-              {/* Second row: 3 columns */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Driver Information */}
-                <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
+              {/* Second row: 3 columns, with Distance & Time wider */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                
+                {/* Distance & Time - wide */}
+                <div className="md:col-span-2 bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <h5 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+                    Distance & Time
+                  </h5>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    {/* Distance Column */}
+                    <div className="space-y-2">
+                      <div>
+                        <strong>Total Kms:</strong> {selectedTrip.total_distance}
+                      </div>
+                      <div>
+                        <strong>Covered Kms:</strong> {selectedTrip.total_covered_distance}
+                      </div>
+                      <div>
+                        <strong>Average Distance:</strong> {selectedTrip.average_distance}
+                      </div>
+                    </div>
+                    {/* Time Column */}
+                    <div className="space-y-2">
+                      <div>
+                        <strong>Total Drive Time:</strong> {selectedTrip.total_drive_time}
+                      </div>
+                      <div>
+                        <strong>Total Detention Time:</strong> {selectedTrip.total_detention_time}
+                      </div>
+                      <div>
+                        <strong>Total Stoppage Time:</strong> {selectedTrip.total_stoppage_time}
+                      </div>
+                      <div>
+                        <strong>Total Time:</strong> {selectedTrip.total_time}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* Driver Information - small */}
+                <div className="md:col-span-1 bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
                   <h5 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
                     Driver Information
                   </h5>
@@ -690,37 +750,21 @@ export function TripDetailsModal({
                     </div>
                   </div>
                 </div>
-                {/* Distance & Time */}
-                <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <h5 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
-                    Distance & Time
-                  </h5>
-                  <div className="space-y-2 text-sm">
-                    <div>
-                      <strong>Total Kms:</strong> {selectedTrip.total_distance}
-                    </div>
-                    <div>
-                      <strong>Covered Kms:</strong> {selectedTrip.total_covered_distance}
-                    </div>
-                    <div>
-                      <strong>Total Detention Time:</strong> {selectedTrip.total_detention_time}
-                    </div>
-                    <div>
-                      <strong>Total Stoppage Time:</strong> {selectedTrip.total_stoppage_time}
-                    </div>
-                    <div>
-                      <strong>Total Drive Time:</strong> {selectedTrip.total_drive_time}
-                    </div>
-                  </div>
-                </div>
-                {/* GPS Information */}
-                <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
+
+                {/* GPS Information - small */}
+                <div className="md:col-span-1 bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
                   <h5 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
                     GPS Information
                   </h5>
                   <div className="space-y-2 text-sm">
                     <div>
+                      <strong>GPS Type:</strong> {selectedTrip.gps_type}
+                    </div>
+                    <div>
                       <strong>GPS Frequency:</strong> {selectedTrip.gps_frequency}
+                    </div>
+                    <div>
+                      <strong>GPS Unit ID:</strong> {selectedTrip.gps_unit_id}
                     </div>
                     <div>
                       <strong>GPS Vendor:</strong> {selectedTrip.gps_vendor}

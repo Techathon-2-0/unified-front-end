@@ -40,6 +40,7 @@ export interface PlannedStop {
   geta: string
   detention_time: string
   name: string
+  geofence_name: string
 }
 
 export interface TripApi {
@@ -58,6 +59,8 @@ export interface TripApi {
   current_location_coordindates: [number, number]
   last_gps_ping: string
   shipment_source: string
+  gps_type: string
+  gps_unit_id: string
   gps_vendor: string
   gps_frequency: string
   total_distance: string
@@ -76,6 +79,9 @@ export interface TripApi {
   total_drive_time: string
   total_stoppage_time: string
   planned_stops: PlannedStop[]
+  last_gps_vendor : string
+  total_time: string
+  average_distance: string
 }
 
 export interface StatusCounts {

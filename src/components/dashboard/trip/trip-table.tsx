@@ -142,15 +142,15 @@ export function TripTable({
               <tr>
                 <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Alert</th>
                 <th
-                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 cursor-pointer"
+                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 cursor-pointer whitespace-nowrap"
                   onClick={() => handleSort("id")}
                 >
-                  <button className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300">
+                  <button className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300 ">
                     Shipment ID {getSortIcon("id")}
                   </button>
                 </th>
                 <th
-                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 cursor-pointer"
+                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 cursor-pointer whitespace-nowrap"
                   onClick={() => handleSort("Vehicle_number")}
                 >
                   <button className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300">
@@ -158,18 +158,18 @@ export function TripTable({
                   </button>
                 </th>
                 <th
-                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 cursor-pointer"
+                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 cursor-pointer whitespace-nowrap"
                   onClick={() => handleSort("status")}
                 >
                   <button className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300">
                     Status {getSortIcon("status")}
                   </button>
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
                   Vehicle Status
                 </th>
                 <th
-                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 cursor-pointer"
+                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 cursor-pointer whitespace-nowrap"
                   onClick={() => handleSort("Start_Time")}
                 >
                   <button className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300">
@@ -177,20 +177,20 @@ export function TripTable({
                   </button>
                 </th>
                 <th
-                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 cursor-pointer"
+                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 cursor-pointer whitespace-nowrap"
                   onClick={() => handleSort("End_Time")}
                 >
-                  <button className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300">
+                  <button className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300 ">
                     End Time {getSortIcon("End_Time")}
                   </button>
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
                   ETA
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
                   Status Duration
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">
                   Details
                 </th>
               </tr>
@@ -237,19 +237,19 @@ export function TripTable({
                       <td className="px-6 py-4">
                         <Badge className={getVehicleStatusColor(trip.Vehicle_status)}>{trip.Vehicle_status}</Badge>
                       </td>
-                      <td className="px-6 py-4 text-gray-700 dark:text-gray-300">
+                      <td className="px-6 py-4 text-gray-700 dark:text-gray-300 whitespace-nowrap">
                         {new Date(trip.Start_Time).toLocaleString()}
                       </td>
-                      <td className="px-6 py-4 text-gray-700 dark:text-gray-300">
+                      <td className="px-6 py-4 text-gray-700 dark:text-gray-300 whitespace-nowrap">
                         {trip.End_Time ? new Date(trip.End_Time).toLocaleString() : "-"}
                       </td>
                       <td className="px-6 py-4 text-gray-700 dark:text-gray-300">
                         <div className="space-y-1">
-                          <div className="text-xs">CETA: {trip.ceta || "-"}</div>
-                          <div className="text-xs">GETA: {trip.geta || "-"}</div>
+                          <div className="text-xs whitespace-nowrap">C-ETA: {trip.ceta || "-"}</div>
+                          <div className="text-xs whitespace-nowrap">G-ETA: {trip.geta || "-"}</div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-gray-700 dark:text-gray-300">{trip.status_duration}</td>
+                      <td className="px-6 py-4 text-gray-700 dark:text-gray-300 whitespace-nowrap">{trip.status_duration}</td>
                       <td className="px-6 py-4 text-center text-sm font-medium">
                         <button
                           

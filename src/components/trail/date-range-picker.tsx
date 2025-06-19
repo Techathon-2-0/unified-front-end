@@ -1,8 +1,8 @@
 import * as React from "react"
-import { format } from "date-fns"
+import { format, differenceInCalendarDays, isAfter, isSameDay } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 import type { DatePickerWithRangeProps } from "../../types/trail/trail_type"
-
+import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -11,6 +11,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export function DatePickerWithRange({ dateRange, onChange, className }: DatePickerWithRangeProps) {
   const [isOpen, setIsOpen] = React.useState(false)
+  const { showErrorToast, Toaster } = useToast({ position: "top-right" })
+  const now = new Date()
+
+  // Helper to check if a date is after now
+  const isFutureDate = (date: Date) => isAfter(date, now)
+
+  // Helper to get max hour/minute for today
+  const getMaxHour = (date: Date | undefined) => {
+    if (!date) return 23
+    if (isSameDay(date, now)) return now.getHours()
+    return 23
+  }
+  const getMaxMinute = (date: Date | undefined, hour: number) => {
+    if (!date) return 59
+    if (isSameDay(date, now) && hour === now.getHours()) return now.getMinutes()
+    return 59
+  }
 
   return (
     <div className={cn("grid gap-2", className)}>
@@ -31,7 +48,7 @@ export function DatePickerWithRange({ dateRange, onChange, className }: DatePick
                 format(dateRange.from, "LLL dd, y")
               )
             ) : (
-              <span>Pick a date</span>
+              <span>Select Date Range</span>
             )}
           </Button>
         </PopoverTrigger>
@@ -40,10 +57,21 @@ export function DatePickerWithRange({ dateRange, onChange, className }: DatePick
             <Calendar
               initialFocus
               mode="range"
-              defaultMonth={dateRange?.from}
+              defaultMonth={dateRange?.from || undefined}
               selected={dateRange}
+              // Disable future dates
+              disabled={(date) => isFutureDate(date)}
               onSelect={(range) => {
-                if (range) onChange(range)
+                if (range && range.from && range.to) {
+                  const days = differenceInCalendarDays(range.to, range.from)
+                  if (days > 6) {
+                    showErrorToast("Maximum 7 days range allowed", "Please select a range of up to 7 days.")
+                    return
+                  }
+                  onChange(range)
+                } else if (range) {
+                  onChange(range)
+                }
               }}
               numberOfMonths={1}
               className="border-b sm:border-r sm:border-b-0 dark:border-gray-700"
@@ -54,9 +82,10 @@ export function DatePickerWithRange({ dateRange, onChange, className }: DatePick
                 <div className="text-sm font-medium dark:text-gray-300">From</div>
                 <div className="flex space-x-2">
                   <Select
-                    value={dateRange.from?.getHours().toString().padStart(2, "0")}
+                    value={dateRange.from ? dateRange.from.getHours().toString().padStart(2, "0") : ""}
                     onValueChange={(value) => {
-                      const newFrom = new Date(dateRange.from || new Date())
+                      if (!dateRange.from) return
+                      const newFrom = new Date(dateRange.from)
                       newFrom.setHours(Number.parseInt(value))
                       onChange({ from: newFrom, to: dateRange.to })
                     }}
@@ -65,18 +94,20 @@ export function DatePickerWithRange({ dateRange, onChange, className }: DatePick
                       <SelectValue placeholder="HH" />
                     </SelectTrigger>
                     <SelectContent position="popper" className="z-[9999] h-[120px] transition-all duration-300 dark:bg-gray-800 dark:border-gray-700">
-                      {Array.from({ length: 24 }).map((_, i) => (
-                        <SelectItem key={i} value={i.toString().padStart(2, "0")} className="dark:text-gray-200 dark:focus:bg-gray-700 dark:hover:bg-gray-700">
-                          {i.toString().padStart(2, "0")}
-                        </SelectItem>
-                      ))}
+                      {dateRange.from &&
+                        Array.from({ length: getMaxHour(dateRange.from) + 1 }).map((_, i) => (
+                          <SelectItem key={i} value={i.toString().padStart(2, "0")} className="dark:text-gray-200 dark:focus:bg-gray-700 dark:hover:bg-gray-700">
+                            {i.toString().padStart(2, "0")}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                   <span className="flex items-center dark:text-gray-300">:</span>
                   <Select
-                    value={dateRange.from?.getMinutes().toString().padStart(2, "0")}
+                    value={dateRange.from ? dateRange.from.getMinutes().toString().padStart(2, "0") : ""}
                     onValueChange={(value) => {
-                      const newFrom = new Date(dateRange.from || new Date())
+                      if (!dateRange.from) return
+                      const newFrom = new Date(dateRange.from)
                       newFrom.setMinutes(Number.parseInt(value))
                       onChange({ from: newFrom, to: dateRange.to })
                     }}
@@ -85,11 +116,12 @@ export function DatePickerWithRange({ dateRange, onChange, className }: DatePick
                       <SelectValue placeholder="MM" />
                     </SelectTrigger>
                     <SelectContent position="popper" className="z-[9999] h-[120px] transition-all duration-300 dark:bg-gray-800 dark:border-gray-700">
-                      {Array.from({ length: 60 }).map((_, i) => (
-                        <SelectItem key={i} value={i.toString().padStart(2, "0")} className="dark:text-gray-200 dark:focus:bg-gray-700 dark:hover:bg-gray-700">
-                          {i.toString().padStart(2, "0")}
-                        </SelectItem>
-                      ))}
+                      {dateRange.from &&
+                        Array.from({ length: getMaxMinute(dateRange.from, dateRange.from?.getHours() ?? 0) + 1 }).map((_, i) => (
+                          <SelectItem key={i} value={i.toString().padStart(2, "0")} className="dark:text-gray-200 dark:focus:bg-gray-700 dark:hover:bg-gray-700">
+                            {i.toString().padStart(2, "0")}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -99,9 +131,10 @@ export function DatePickerWithRange({ dateRange, onChange, className }: DatePick
                 <div className="text-sm font-medium dark:text-gray-300">To</div>
                 <div className="flex space-x-2">
                   <Select
-                    value={dateRange.to?.getHours().toString().padStart(2, "0")}
+                    value={dateRange.to ? dateRange.to.getHours().toString().padStart(2, "0") : ""}
                     onValueChange={(value) => {
-                      const newTo = new Date(dateRange.to || new Date())
+                      if (!dateRange.to) return
+                      const newTo = new Date(dateRange.to)
                       newTo.setHours(Number.parseInt(value))
                       onChange({ from: dateRange.from, to: newTo })
                     }}
@@ -110,18 +143,20 @@ export function DatePickerWithRange({ dateRange, onChange, className }: DatePick
                       <SelectValue placeholder="HH" />
                     </SelectTrigger>
                     <SelectContent position="popper" className="z-[9999] h-[120px] transition-all duration-300 dark:bg-gray-800 dark:border-gray-700">
-                      {Array.from({ length: 24 }).map((_, i) => (
-                        <SelectItem key={i} value={i.toString().padStart(2, "0")} className="dark:text-gray-200 dark:focus:bg-gray-700 dark:hover:bg-gray-700">
-                          {i.toString().padStart(2, "0")}
-                        </SelectItem>
-                      ))}
+                      {dateRange.to &&
+                        Array.from({ length: getMaxHour(dateRange.to) + 1 }).map((_, i) => (
+                          <SelectItem key={i} value={i.toString().padStart(2, "0")} className="dark:text-gray-200 dark:focus:bg-gray-700 dark:hover:bg-gray-700">
+                            {i.toString().padStart(2, "0")}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                   <span className="flex items-center dark:text-gray-300">:</span>
                   <Select
-                    value={dateRange.to?.getMinutes().toString().padStart(2, "0")}
+                    value={dateRange.to ? dateRange.to.getMinutes().toString().padStart(2, "0") : ""}
                     onValueChange={(value) => {
-                      const newTo = new Date(dateRange.to || new Date())
+                      if (!dateRange.to) return
+                      const newTo = new Date(dateRange.to)
                       newTo.setMinutes(Number.parseInt(value))
                       onChange({ from: dateRange.from, to: newTo })
                     }}
@@ -130,11 +165,12 @@ export function DatePickerWithRange({ dateRange, onChange, className }: DatePick
                       <SelectValue placeholder="MM" />
                     </SelectTrigger>
                     <SelectContent position="popper" className="z-[9999] h-[120px] transition-all duration-300 dark:bg-gray-800 dark:border-gray-700">
-                      {Array.from({ length: 60 }).map((_, i) => (
-                        <SelectItem key={i} value={i.toString().padStart(2, "0")} className="dark:text-gray-200 dark:focus:bg-gray-700 dark:hover:bg-gray-700">
-                          {i.toString().padStart(2, "0")}
-                        </SelectItem>
-                      ))}
+                      {dateRange.to &&
+                        Array.from({ length: getMaxMinute(dateRange.to, dateRange.to?.getHours() ?? 0) + 1 }).map((_, i) => (
+                          <SelectItem key={i} value={i.toString().padStart(2, "0")} className="dark:text-gray-200 dark:focus:bg-gray-700 dark:hover:bg-gray-700">
+                            {i.toString().padStart(2, "0")}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -146,9 +182,7 @@ export function DatePickerWithRange({ dateRange, onChange, className }: DatePick
               <Button
                 variant="outline"
                 onClick={() => {
-                  const today = new Date()
-                  today.setHours(0, 0, 0, 0)
-                  onChange({ from: new Date(today), to: new Date(today) })
+                  onChange({ from: undefined, to: undefined })
                 }}
                 className="w-full mt-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200"
               >
@@ -158,6 +192,7 @@ export function DatePickerWithRange({ dateRange, onChange, className }: DatePick
           </div>
         </PopoverContent>
       </Popover>
+      {Toaster}
     </div>
   )
 }

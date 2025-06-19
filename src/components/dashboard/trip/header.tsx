@@ -355,12 +355,30 @@ export function TripHeader({
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
-                    <CalendarComponent
-                      mode="range"
-                      selected={dateRange}
-                      onSelect={handleDateRangeChange}
-                      initialFocus
-                    />
+                    <div className="flex flex-col gap-2 p-2">
+                      <CalendarComponent
+                        mode="range"
+                        selected={dateRange}
+                        onSelect={handleDateRangeChange}
+                        initialFocus
+                        disabled={(date) => date > new Date()}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full mt-2"
+                        onClick={() => {
+                          setDateRange({ from: undefined, to: undefined });
+                          setFilters({
+                            ...filters,
+                            startDate: "",
+                            endDate: "",
+                          });
+                        }}
+                      >
+                        Reset
+                      </Button>
+                    </div>
                   </PopoverContent>
                 </Popover>
               </div>
