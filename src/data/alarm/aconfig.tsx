@@ -40,7 +40,15 @@ export const mockAlarms: Alarm[] = [
 // Fetch all alarms from the API with related data
 export const fetchAlarms = async (): Promise<Alarm[]> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/alarm`)
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/alarm`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     const alarms = response.data.data || []
 
     // Fetch detailed data for each alarm including related groups, emails, and phone numbers
@@ -48,7 +56,15 @@ export const fetchAlarms = async (): Promise<Alarm[]> => {
       alarms.map(async (alarm: any) => {
         try {
           // Fetch detailed alarm data with relations
-          const detailResponse = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/alarm/${alarm.id}`)
+          const detailResponse = await axios.get(
+            `${import.meta.env.VITE_BACKEND_URL}/alarm/${alarm.id}`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+              },
+            }
+          )
           const detailData = detailResponse.data.data || alarm
 
           return {
@@ -217,11 +233,16 @@ export const createAlarm = async (alarmData: Partial<Alarm>): Promise<any> => {
       throw new Error("At least one vehicle group is required")
     }
 
-    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/alarm`, backendData, {
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await axios.post(
+      `${import.meta.env.VITE_BACKEND_URL}/alarm`,
+      backendData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
       }
-    })
+    )
     
     return response.data
 
@@ -284,11 +305,16 @@ export const updateAlarm = async (id: string, alarmData: Partial<Alarm>): Promis
       throw new Error("At least one vehicle group is required")
     }
 
-    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/alarm/${id}`, backendData, {
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await axios.put(
+      `${import.meta.env.VITE_BACKEND_URL}/alarm/${id}`,
+      backendData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
       }
-    })
+    )
     return response.data
   } catch (error) {
     console.error("Error updating alarm:", error)
@@ -299,7 +325,15 @@ export const updateAlarm = async (id: string, alarmData: Partial<Alarm>): Promis
 // Delete an alarm
 export const deleteAlarm = async (id: string): Promise<any> => {
   try {
-    const response = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/alarm/${id}`)
+    const response = await axios.delete(
+      `${import.meta.env.VITE_BACKEND_URL}/alarm/${id}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     return response.data
   } catch (error) {
     console.error("Error deleting alarm:", error)

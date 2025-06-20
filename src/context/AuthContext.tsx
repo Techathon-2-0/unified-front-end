@@ -11,6 +11,7 @@ const apiClient = axios.create({
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
+    "Authorization": `Bearer ${Cookies.get("access_token") || ""}`,
   },
 })
 
@@ -55,7 +56,7 @@ interface AuthProviderProps {
 }
 
 // Define public routes that don't require authentication
-const PUBLIC_ROUTES = ['/', '/signin']
+const PUBLIC_ROUTES = ['/']
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
@@ -67,86 +68,113 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Check for existing token on app load and validate it
   useEffect(() => {
-    const token = Cookies.get("authToken")
-    const userData = Cookies.get("userData")
-    
-    // Store current path on initial load if not on public routes
-    if (!PUBLIC_ROUTES.includes(location.pathname)) {
-      sessionStorage.setItem('redirectPath', location.pathname);
-    }
+    const checkAuth = async () => {
+      const token = Cookies.get("authToken")
+      const userData = Cookies.get("userData")
+      
+      // Store current path on initial load if not on public routes
+      if(Cookies.get("access_token")){
+        localStorage.setItem("access_token", Cookies.get("access_token") || "");
+      }
+      if (!PUBLIC_ROUTES.includes(location.pathname)) {
+        sessionStorage.setItem('redirectPath', location.pathname);
+      }
+      const authenticatedtoken = Cookies.get("access_token")||"";
+      // console.log("enetr");
+      // console.log("Authenticated token:", token);
+      // console.log("User data:", userData);
+      // console.log("Access token from localStorage:", authenticatedtoken);
+      if(authenticatedtoken&&!user&&!token){
+        try {
+          console.log("Checking SSO token validity")
+          console.log("SSO URL:", import.meta.env.VITE_SSO_URL)
+          const isok = await axios.post(
+            `${import.meta.env.VITE_SSO_URL}/oauth/check_token`, // Replace with your auth service URL
+            new URLSearchParams({ authenticatedtoken }), // x-www-form-urlencoded body
+            {
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            }
+          );
+          const userDataResp = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/user?${isok.data.user_name}`);
+          // console.log(userDataResp.data);
+          // const userDataResp = userData[0];
+          Cookies.set("authToken", userDataResp.data.token, { 
+            expires: 1, // 1 day
+            secure: true, // Only sent over HTTPS
+            sameSite: 'strict' // Prevents CSRF
+          })
 
-    if (token && userData) {
-      try {
-        const parsedUser = JSON.parse(userData)
-        
-        // Validate that the user still exists in the backend
-        apiClient.get(`/user/id/${parsedUser.id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        })
-        .then(() => {
-          // User exists, set user data
-          setUser(parsedUser)
-          apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`
-        })
-        .catch((error) => {
-          // User doesn't exist or token is invalid, clear cookies
-          console.error("Error validating user session:", error)
+          Cookies.set("userData", JSON.stringify(userDataResp.data), { 
+            expires: 1,
+            secure: true,
+            sameSite: 'strict'
+          })
+        } catch (error) {
+          console.error("Error during SSO token check:", error)
+        }
+      }
+
+      if (token && userData && localStorage.getItem("access_token")) {
+        try {
+          const parsedUser = JSON.parse(userData)
+          
+
+          apiClient.get(`/user/id/${parsedUser.id}`, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("access_token")}`
+            }
+          })
+          .then(() => {
+            // User exists, set user data
+            setUser(parsedUser)
+            apiClient.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("access_token")}`
+          })
+          .catch((error) => {
+            // User doesn't exist or token is invalid, clear cookies
+            console.error("Error validating user session:", error)
+            Cookies.remove("authToken")
+            Cookies.remove("userData")
+            localStorage.removeItem("rememberedEmail")
+            localStorage.removeItem("rememberedPassword")
+            localStorage.removeItem("rememberMe")
+            
+            // Only redirect to signin if user is on a protected route
+            console.log("Redirecting to SSO login page due to invalid session")
+            if (!PUBLIC_ROUTES.includes(location.pathname)) {
+              window.location.href = `${import.meta.env.VITE_SSO_LOGIN_PAGE_URL}`;
+            }
+          })
+          .finally(() => {
+            setLoading(false)
+          })
+        } catch (error) {
+          console.error("Error parsing stored user data:", error)
           Cookies.remove("authToken")
           Cookies.remove("userData")
-          localStorage.removeItem("rememberedEmail")
-          localStorage.removeItem("rememberedPassword")
-          localStorage.removeItem("rememberMe")
-          
-          // Only redirect to signin if user is on a protected route
-          if (!PUBLIC_ROUTES.includes(location.pathname)) {
-            navigate('/signin', { 
-              replace: true,
-              state: { showAccessDeniedToast: true }
-            })
-          }
-        })
-        .finally(() => {
           setLoading(false)
-        })
-      } catch (error) {
-        console.error("Error parsing stored user data:", error)
-        Cookies.remove("authToken")
-        Cookies.remove("userData")
+        }
+      } else {
         setLoading(false)
       }
-    } else {
-      setLoading(false)
-    }
+    };
+
+    checkAuth();
   }, [navigate, location.pathname])
 
-  // Check for access denied toast flag when on signin page
-  // useEffect(() => {
-  //   const locationState = location.state as any
-  //   if (locationState?.showAccessDeniedToast && location.pathname === "/signin") {
-  //     showErrorToast("Access Denied", "You must be logged in to access this page.")
-  //     // Clear the state to prevent showing toast again on refresh
-  //     navigate(location.pathname, { replace: true, state: { ...locationState, showAccessDeniedToast: false } })
-  //   }
-  // }, [location, showErrorToast, navigate])
 
-  // If user deleted themselves and tries to navigate back to a protected route
   useEffect(() => {
     // Only redirect if not loading, not authenticated, not already on a public route
     if (!loading && !user && !PUBLIC_ROUTES.includes(location.pathname)) {
       // We don't need to set redirectPath here since it's already set in the initial useEffect
-      navigate('/signin', { 
-        replace: true,
-        state: { showAccessDeniedToast: true }
-      })
+     window.location.href = `${import.meta.env.VITE_SSO_LOGIN_PAGE_URL}`;
     }
   }, [user, location.pathname, navigate, loading])
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
       setLoading(true)
-      setIsLoggingOut(false) // Reset logout flag on login
+      setIsLoggingOut(false) 
+
 
       const response = await apiClient.post("/login", {
         username,
@@ -163,18 +191,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           secure: true, // Only sent over HTTPS
           sameSite: 'strict' // Prevents CSRF
         })
+
         Cookies.set("userData", JSON.stringify(userData), { 
           expires: 1,
           secure: true,
           sameSite: 'strict'
         })
         
-        // Set axios default header
         apiClient.defaults.headers.common["Authorization"] = `Bearer ${userData.token}`
         
         showSuccessToast("Login Successful", `Welcome back! ${userData?.name}`)
         const redirectPath = sessionStorage.getItem('redirectPath') || '/dashboard';
-        console.log(redirectPath)
+        // console.log(redirectPath)
         sessionStorage.removeItem('redirectPath'); // Clear it after use
         navigate(redirectPath);
         
@@ -203,13 +231,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
-  const logout = () => {
+  const logout = async() => {
     setIsLoggingOut(true)
     setUser(null)
+    await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/user/logout`, {
+      headers: {
+        Authorization: `Bearer ${Cookies.get("access_token") || ""}`,
+      },
+    })
     Cookies.remove("authToken")
     Cookies.remove("userData")
     delete apiClient.defaults.headers.common["Authorization"]
-    navigate("/signin")
+    window.location.href = `${import.meta.env.VITE_SSO_LOGIN_PAGE_URL}`;
     showSuccessToast("Logout Successful", `${user?.name} you have been logged out.`)
 
     setTimeout(() => {

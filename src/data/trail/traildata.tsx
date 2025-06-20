@@ -8,12 +8,19 @@ export const fetchVehicleTrail = async (
   endTime: string,
 ): Promise<VehicleTrailResponse | null> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/trail/vehicle/${vehicleNumber}`, {
-      params: {
-        startTime,
-        endTime,
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/trail/vehicle/${vehicleNumber}`,
+      {
+        params: {
+          startTime,
+          endTime,
+        },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
       },
-    })
+    )
 
     if (response.data.success) {
       return response.data.data
@@ -28,7 +35,15 @@ export const fetchVehicleTrail = async (
 // Fetch Trip Trail Data
 export const fetchTripTrail = async (shipmentId: string): Promise<TripTrailResponse | null> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/trail/trip/${shipmentId}`)
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/trail/trip/${shipmentId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      },
+    )
 
     console.log("Trip Trail Response:", response.data)
 

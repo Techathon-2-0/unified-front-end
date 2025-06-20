@@ -5,7 +5,15 @@ import type { GeofenceGroup} from "../../types/geofence/ggroup_type"
 // Fetch all geofence groups
 export const fetchGeofenceGroups = async (): Promise<GeofenceGroup[]> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/geofence-group`)
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/geofence-group`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     const groups = response.data.data || []
 
     return groups.map((group: any) => ({
@@ -28,7 +36,16 @@ export const createGeofenceGroup = async (data: {
   geofenceIds: number[]
 }): Promise<GeofenceGroup> => {
   try {
-    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/geofence-group`, data)
+    const response = await axios.post(
+      `${import.meta.env.VITE_BACKEND_URL}/geofence-group`,
+      data,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     const group = response.data.data
 
     return {
@@ -51,7 +68,16 @@ export const updateGeofenceGroup = async (
   data: { geo_group?: string; geofenceIds?: number[] },
 ): Promise<GeofenceGroup> => {
   try {
-    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/geofence-group/${id}`, data)
+    const response = await axios.put(
+      `${import.meta.env.VITE_BACKEND_URL}/geofence-group/${id}`,
+      data,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     const group = response.data.data
 
     return {
@@ -71,7 +97,15 @@ export const updateGeofenceGroup = async (
 // Delete geofence group
 export const deleteGeofenceGroup = async (id: number): Promise<void> => {
   try {
-    await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/geofence-group/${id}`)
+    await axios.delete(
+      `${import.meta.env.VITE_BACKEND_URL}/geofence-group/${id}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
   } catch (error) {
     console.error("Error deleting geofence group:", error)
     throw error
@@ -81,9 +115,16 @@ export const deleteGeofenceGroup = async (id: number): Promise<void> => {
 // Search geofence groups
 export const searchGeofenceGroups = async (query: string): Promise<GeofenceGroup[]> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/geofence-group`, {
-      params: { query },
-    })
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/geofence-group`,
+      {
+        params: { query },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     const groups = response.data.data || []
 
     return groups.map((group: any) => ({

@@ -37,7 +37,15 @@ export async function fetchTrips(
     params.append("page", page.toString())
     params.append("limit", limit.toString())
 
-    const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/trip/v1/${userId}?${params}`)
+    const res = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/trip/v1/${userId}?${params}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     console.log("Response from fetchTrips:", res.data)
 
     if (res.data && res.data.data) {
@@ -53,7 +61,15 @@ export async function fetchTrips(
 
 export async function fetchAlertsByShipment(shipmentId: string): Promise<AlertResponse> {
   try {
-    const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/alerts/shipment/${shipmentId}`)
+    const res = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/alerts/shipment/${shipmentId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     return res.data
   } catch (error) {
     console.error("Error fetching alerts:", error)
@@ -63,10 +79,19 @@ export async function fetchAlertsByShipment(shipmentId: string): Promise<AlertRe
 
 export async function toggleAlertStatus(alertId: number, shipmentId: string): Promise<any> {
   try {
-    const res = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/alerts/${alertId}`, {
-      status: 2,
-      shipmentId: shipmentId,
-    })
+    const res = await axios.put(
+      `${import.meta.env.VITE_BACKEND_URL}/alerts/${alertId}`,
+      {
+        status: 2,
+        shipmentId: shipmentId,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     return res.data
   } catch (error) {
     console.error("Error toggling alert status:", error)
@@ -76,7 +101,15 @@ export async function toggleAlertStatus(alertId: number, shipmentId: string): Pr
 
 export async function fetchIntutrackData(shipmentId: string): Promise<IntutrackData> {
   try {
-    const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/intutrack/db?shipment_id=${shipmentId}`)
+    const res = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/intutrack/db?shipment_id=${shipmentId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     return res.data.data
   } catch (error) {
     console.error("Error fetching intutrack data:", error)
@@ -86,7 +119,15 @@ export async function fetchIntutrackData(shipmentId: string): Promise<IntutrackD
 
 export async function refreshIntutrackData(shipmentId: string): Promise<IntutrackData> {
   try {
-    const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/intutrack/refresh?shipment_id=${shipmentId}`)
+    const res = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/intutrack/refresh?shipment_id=${shipmentId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     return res.data.data
   } catch (error) {
     console.error("Error refreshing intutrack data:", error)

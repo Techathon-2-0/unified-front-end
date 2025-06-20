@@ -4,7 +4,15 @@ import type { Group } from "../../types/manage/group_type"
 // API Functions
 export const fetchGroups = async (): Promise<Group[]> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/groups`)
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/groups`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     const groups = response.data.data || []
 
     return groups.map((group: any) => ({
@@ -22,10 +30,19 @@ export const fetchGroups = async (): Promise<Group[]> => {
 
 export const createGroup = async (groupData: { name: string; entityIds: number[] }): Promise<Group> => {
   try {
-    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/groups`, {
-      group_name: groupData.name,
-      entityIds: groupData.entityIds,
-    })
+    const response = await axios.post(
+      `${import.meta.env.VITE_BACKEND_URL}/groups`,
+      {
+        group_name: groupData.name,
+        entityIds: groupData.entityIds,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
 
     const group = response.data.data
     return {
@@ -43,10 +60,19 @@ export const createGroup = async (groupData: { name: string; entityIds: number[]
 
 export const updateGroup = async (id: number, groupData: { name: string; entityIds: number[] }): Promise<Group> => {
   try {
-    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/groups/${id}`, {
-      group_name: groupData.name,
-      entityIds: groupData.entityIds,
-    })
+    const response = await axios.put(
+      `${import.meta.env.VITE_BACKEND_URL}/groups/${id}`,
+      {
+        group_name: groupData.name,
+        entityIds: groupData.entityIds,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
 
     const group = response.data.data
     return {
@@ -64,7 +90,15 @@ export const updateGroup = async (id: number, groupData: { name: string; entityI
 
 export const deleteGroup = async (id: number): Promise<void> => {
   try {
-    await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/groups/${id}`)
+    await axios.delete(
+      `${import.meta.env.VITE_BACKEND_URL}/groups/${id}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
   } catch (error) {
     console.error("Error deleting group:", error)
     throw error
@@ -73,9 +107,16 @@ export const deleteGroup = async (id: number): Promise<void> => {
 
 export const searchGroups = async (query: string): Promise<Group[]> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/groups/search`, {
-      params: { query },
-    })
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/groups/search`,
+      {
+        params: { query },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
 
     const groups = response.data.data || []
     return groups.map((group: any) => ({
@@ -111,13 +152,19 @@ export const searchGroups = async (query: string): Promise<Group[]> => {
 // Initial empty data - will be populated from API
 export const initialGroupData: Group[] = []
 
-
-
 // By USER ID
 
 export const fetchGroupsbyuserId = async (userId:number): Promise<Group[]> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/groups/user/${userId}`)
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/groups/user/${userId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     const groups = response.data.data || []
 
     return groups.map((group: any) => ({

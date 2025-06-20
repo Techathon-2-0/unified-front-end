@@ -104,7 +104,7 @@ export const CreateAlarmModal = ({
         emails: selectedEmails,
         phoneNumbers: selectedPhones,
       })
-      setErrors({}) 
+      setErrors({})
     } else if (!editAlarm && isOpen) {
       resetForm()
       setErrors({})
@@ -479,8 +479,8 @@ export const CreateAlarmModal = ({
                 <div className="flex border-b border-gray-200 dark:border-gray-700">
                   <button
                     className={`px-6 py-3 text-sm font-medium transition-colors relative ${activeSection === "basic"
-                        ? "text-black dark:text-white border-b-2 border-black dark:border-white"
-                        : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                      ? "text-black dark:text-white border-b-2 border-black dark:border-white"
+                      : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                       }`}
                     onClick={() => setActiveSection("basic")}
                   >
@@ -491,8 +491,8 @@ export const CreateAlarmModal = ({
                   </button>
                   <button
                     className={`px-6 py-3 text-sm font-medium transition-colors relative ${activeSection === "groups"
-                        ? "text-black dark:text-white border-b-2 border-black dark:border-white"
-                        : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                      ? "text-black dark:text-white border-b-2 border-black dark:border-white"
+                      : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                       }`}
                     onClick={() => setActiveSection("groups")}
                   >
@@ -503,8 +503,8 @@ export const CreateAlarmModal = ({
                   </button>
                   <button
                     className={`px-6 py-3 text-sm font-medium transition-colors ${activeSection === "notifications"
-                        ? "text-black dark:text-white border-b-2 border-black dark:border-white"
-                        : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                      ? "text-black dark:text-white border-b-2 border-black dark:border-white"
+                      : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                       }`}
                     onClick={() => setActiveSection("notifications")}
                   >
@@ -530,8 +530,8 @@ export const CreateAlarmModal = ({
                             value={formData.type}
                             onChange={handleChange}
                             className={`w-full pl-10 pr-3 py-2.5 border ${errors.type
-                                ? "border-red-500 ring-1 ring-red-500"
-                                : "border-gray-300 dark:border-gray-600"
+                              ? "border-red-500 ring-1 ring-red-500"
+                              : "border-gray-300 dark:border-gray-600"
                               } rounded-lg shadow-sm focus:outline-none transition-colors text-gray-900 dark:text-white dark:bg-gray-700`}
                           >
                             <option value="">Select Alarm Type</option>
@@ -575,8 +575,8 @@ export const CreateAlarmModal = ({
                               />
                               <div
                                 className={`w-5 h-5 rounded-full border-2 ${formData.severityType === severity
-                                    ? `${getSeverityColor(severity)} border-transparent`
-                                    : "border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-700"
+                                  ? `${getSeverityColor(severity)} border-transparent`
+                                  : "border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-700"
                                   } mr-2 flex items-center justify-center transition-colors`}
                               >
                                 {formData.severityType === severity && (
@@ -634,8 +634,8 @@ export const CreateAlarmModal = ({
                                     : ""
                             }
                             className={`w-full px-3 py-2.5 border ${errors.thresholdValue
-                                ? "border-red-500 ring-1 ring-red-500"
-                                : "border-gray-300 dark:border-gray-600"
+                              ? "border-red-500 ring-1 ring-red-500"
+                              : "border-gray-300 dark:border-gray-600"
                               } rounded-lg shadow-sm focus:outline-none text-gray-900 dark:text-white dark:bg-gray-700`}
                           />
                           {errors.thresholdValue && (
@@ -663,8 +663,8 @@ export const CreateAlarmModal = ({
                             onChange={handleChange}
                             placeholder="e.g., 30"
                             className={`w-full px-3 py-2.5 border ${errors.restDuration
-                                ? "border-red-500 ring-1 ring-red-500"
-                                : "border-gray-300 dark:border-gray-600"
+                              ? "border-red-500 ring-1 ring-red-500"
+                              : "border-gray-300 dark:border-gray-600"
                               } rounded-lg shadow-sm focus:outline-none text-gray-900 dark:text-white dark:bg-gray-700`}
                           />
                           {errors.restDuration && (
@@ -697,8 +697,8 @@ export const CreateAlarmModal = ({
                                 />
                                 <div
                                   className={`w-5 h-5 rounded-full border-2 ${formData.geofenceStatus === status
-                                      ? "bg-blue-600 border-transparent"
-                                      : "border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-700"
+                                    ? "bg-blue-600 border-transparent"
+                                    : "border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-700"
                                     } mr-2 flex items-center justify-center transition-colors`}
                                 >
                                   {formData.geofenceStatus === status && (
@@ -735,8 +735,8 @@ export const CreateAlarmModal = ({
                             />
                             <div
                               className={`w-5 h-5 rounded-full border-2 ${formData.alarmGeneration === "Always"
-                                  ? "bg-blue-600 border-transparent"
-                                  : "border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-700"
+                                ? "bg-blue-600 border-transparent"
+                                : "border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-700"
                                 } mr-2 flex items-center justify-center transition-colors`}
                             >
                               {formData.alarmGeneration === "Always" && (
@@ -763,8 +763,8 @@ export const CreateAlarmModal = ({
                             />
                             <div
                               className={`w-5 h-5 rounded-full border-2 ${formData.alarmGeneration === "Conditional"
-                                  ? "bg-blue-600 border-transparent"
-                                  : "border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-700"
+                                ? "bg-blue-600 border-transparent"
+                                : "border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-700"
                                 } mr-2 flex items-center justify-center transition-colors`}
                             >
                               {formData.alarmGeneration === "Conditional" && (
@@ -877,8 +877,8 @@ export const CreateAlarmModal = ({
                             />
                             <div
                               className={`w-5 h-5 rounded-full border-2 ${formData.status === "Active"
-                                  ? "bg-green-600 border-transparent"
-                                  : "border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-700"
+                                ? "bg-green-600 border-transparent"
+                                : "border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-700"
                                 } mr-2 flex items-center justify-center transition-colors`}
                             >
                               {formData.status === "Active" && (
@@ -905,8 +905,8 @@ export const CreateAlarmModal = ({
                             />
                             <div
                               className={`w-5 h-5 rounded-full border-2 ${formData.status === "Inactive"
-                                  ? "bg-red-600 border-transparent"
-                                  : "border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-700"
+                                ? "bg-red-600 border-transparent"
+                                : "border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-700"
                                 } mr-2 flex items-center justify-center transition-colors`}
                             >
                               {formData.status === "Inactive" && (
@@ -1045,17 +1045,17 @@ export const CreateAlarmModal = ({
                 </div>
 
                 <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900 flex flex-row justify-between rounded-b-xl border-t border-gray-200 dark:border-gray-700 sticky bottom-0 space-y-0 space-x-2">
-                <button
+                  <button
                     type="button"
                     onClick={() => {
                       handleResetClick()
                       setErrors({}) // <-- Clear errors on reset
                     }}
                     className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition-colors"
-                >
+                  >
                     Reset
                   </button>
-                   <div className="flex flex-row space-x-2">
+                  <div className="flex flex-row space-x-2">
                     <button
                       type="button"
                       onClick={() => {
@@ -1063,14 +1063,14 @@ export const CreateAlarmModal = ({
                         setErrors({}) // <-- Clear errors on cancel
                       }}
                       className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition-colors"
-                  >
+                    >
                       Cancel
                     </button>
                     <button
                       type="button"
                       onClick={handleSubmit}
                       className="px-4 py-1.5 sm:px-5 sm:py-2 border border-transparent rounded-lg shadow-sm sm:text-sm font-medium text-white bg-black dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 focus:outline-none transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
+                    >
                       {editAlarm ? "Update" : "Create"}
                     </button>
                   </div>

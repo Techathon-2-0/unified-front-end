@@ -3,7 +3,15 @@ import axios from "axios"
 // API Functions
 export const fetchGeofences = async () => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/geofence/all`)
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/geofence/all`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     return response.data.data.map(transformBackendToFrontend)
   } catch (error) {
     console.error("Error fetching geofences:", error)
@@ -14,7 +22,16 @@ export const fetchGeofences = async () => {
 export const createGeofence = async (geofenceData: any) => {
   try {
     const backendData = transformFrontendToBackend(geofenceData)
-    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/geofence`, backendData)
+    const response = await axios.post(
+      `${import.meta.env.VITE_BACKEND_URL}/geofence`,
+      backendData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     return transformBackendToFrontend(response.data.data)
   } catch (error) {
     console.error("Error creating geofence:", error)
@@ -25,7 +42,16 @@ export const createGeofence = async (geofenceData: any) => {
 export const updateGeofence = async (id: number, geofenceData: any) => {
   try {
     const backendData = transformFrontendToBackend(geofenceData)
-    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/geofence/${id}`, backendData)
+    const response = await axios.put(
+      `${import.meta.env.VITE_BACKEND_URL}/geofence/${id}`,
+      backendData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     return transformBackendToFrontend(response.data.data)
   } catch (error) {
     console.error("Error updating geofence:", error)
@@ -35,7 +61,15 @@ export const updateGeofence = async (id: number, geofenceData: any) => {
 
 export const deleteGeofence = async (id: number) => {
   try {
-    await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/geofence/${id}`)
+    await axios.delete(
+      `${import.meta.env.VITE_BACKEND_URL}/geofence/${id}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     return { id }
   } catch (error) {
     console.error("Error deleting geofence:", error)
@@ -45,7 +79,15 @@ export const deleteGeofence = async (id: number) => {
 
 export const searchGeofences = async (query: string) => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/geofence/all?query=${encodeURIComponent(query)}`)
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/geofence/all?query=${encodeURIComponent(query)}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     return response.data.data.map(transformBackendToFrontend)
   } catch (error) {
     console.error("Error searching geofences:", error)
@@ -145,7 +187,15 @@ const transformFrontendToBackend = (frontendGeofence: any) => {
 
 export const fetchGeofencesbyuserid = async (userId : String) => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/geofence/user/${userId}`)
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/geofence/user/${userId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     // Use response.data directly, since it's an array
     return response.data.map(transformBackendToFrontend)
   } catch (error) {

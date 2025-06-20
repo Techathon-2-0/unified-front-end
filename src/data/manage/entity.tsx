@@ -4,12 +4,19 @@ import type { Entity, Vendor } from "../../types/manage/entity_type"
 // Get all entities
 export const fetchEntities = async (sortField?: string, sortDirection?: string): Promise<Entity[]> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/entity`, {
-      params: {
-        sortField,
-        sortDirection,
-      },
-    })
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/entity`,
+      {
+        params: {
+          sortField,
+          sortDirection,
+        },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
 
     // Transform the response to match our frontend Entity interface
     const entities: Entity[] = response.data.data.map((item: any) => ({
@@ -43,12 +50,29 @@ export const createEntity = async (entityData: Omit<Entity, "id" | "createdAt" |
       vendorIds: vendorIds,
     }
 
-    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/entity`, payload)
+    const response = await axios.post(
+      `${import.meta.env.VITE_BACKEND_URL}/entity`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
 
     // Ensure we have complete data by fetching the entity again if needed
     if (!response.data.data.vendors || !response.data.data.createdAt) {
       const entityId = response.data.data.id
-      const detailedResponse = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/entity/${entityId}`)
+      const detailedResponse = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/entity/${entityId}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+          },
+        }
+      )
       return {
         id: detailedResponse.data.data.id,
         vehicleNumber: detailedResponse.data.data.vehicleNumber,
@@ -93,7 +117,16 @@ export const updateEntity = async (
       vendorIds: vendorIds,
     }
 
-    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/entity/${id}`, payload)
+    const response = await axios.put(
+      `${import.meta.env.VITE_BACKEND_URL}/entity/${id}`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
 
     // Transform the response to match our frontend Entity interface
     const updatedEntity: Entity = {
@@ -116,7 +149,15 @@ export const updateEntity = async (
 // Delete an entity
 export const deleteEntity = async (id: number): Promise<void> => {
   try {
-    await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/entity/${id}`)
+    await axios.delete(
+      `${import.meta.env.VITE_BACKEND_URL}/entity/${id}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
   } catch (error) {
     console.error("Error deleting entity:", error)
     throw error
@@ -126,9 +167,16 @@ export const deleteEntity = async (id: number): Promise<void> => {
 // Search entities
 export const searchEntities = async (query: string): Promise<Entity[]> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/entity/search`, {
-      params: { query },
-    })
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/entity/search`,
+      {
+        params: { query },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
 
     // Transform the response to match our frontend Entity interface
     const entities: Entity[] = response.data.data.map((item: any) => ({
@@ -151,7 +199,15 @@ export const searchEntities = async (query: string): Promise<Entity[]> => {
 // Get all vendors
 export const fetchVendors = async (): Promise<Vendor[]> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/vendors`)
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/vendors`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     return response.data.data
   } catch (error) {
     console.error("Error fetching vendors:", error)

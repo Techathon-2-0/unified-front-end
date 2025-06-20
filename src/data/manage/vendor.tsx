@@ -4,7 +4,15 @@ import type { Vendor } from "../../types/manage/vendor_type"
 // Get all vendors
 export const fetchVendors = async (): Promise<Vendor[]> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/vendor`)
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/vendor`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      },
+    )
 
     // Transform the response to match our frontend Vendor interface
     const vendors: Vendor[] = response.data.data.map((item: any) => ({
@@ -30,12 +38,29 @@ export const createVendor = async (vendorData: Omit<Vendor, "id" | "createdAt" |
       status: vendorData.active, // Frontend uses 'active', backend expects 'status'
     }
 
-    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/vendor`, payload)
+    const response = await axios.post(
+      `${import.meta.env.VITE_BACKEND_URL}/vendor`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      },
+    )
 
     // Ensure we have complete data by fetching the vendor again if needed
     if (!response.data.data.created_at && !response.data.data.createdAt) {
       const vendorId = response.data.data.id
-      const detailedResponse = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/vendor/${vendorId}`)
+      const detailedResponse = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/vendor/${vendorId}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+          },
+        },
+      )
       return {
         id: detailedResponse.data.data.id,
         name: detailedResponse.data.data.name,
@@ -71,7 +96,16 @@ export const updateVendor = async (
       status: vendorData.active, // Frontend uses 'active', backend expects 'status'
     }
 
-    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/vendor/${id}`, payload)
+    const response = await axios.put(
+      `${import.meta.env.VITE_BACKEND_URL}/vendor/${id}`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      },
+    )
 
     // Transform the response to match our frontend Vendor interface
     const updatedVendor: Vendor = {
@@ -92,7 +126,15 @@ export const updateVendor = async (
 // Delete a vendor
 export const deleteVendor = async (id: number): Promise<void> => {
   try {
-    await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/vendor/${id}`)
+    await axios.delete(
+      `${import.meta.env.VITE_BACKEND_URL}/vendor/${id}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      },
+    )
   } catch (error) {
     console.error("Error deleting vendor:", error)
     throw error
@@ -102,9 +144,16 @@ export const deleteVendor = async (id: number): Promise<void> => {
 // Search vendors
 export const searchVendors = async (query: string): Promise<Vendor[]> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/vendor/search`, {
-      params: { query },
-    })
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/vendor/search`,
+      {
+        params: { query },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      },
+    )
 
     // Transform the response to match our frontend Vendor interface
     const vendors: Vendor[] = response.data.data.map((item: any) => ({

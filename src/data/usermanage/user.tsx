@@ -64,7 +64,16 @@ export const createUser = async (user: User): Promise<User> => {
       custgrp: user.customerGroups,
     }
 
-    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/user`, userData)
+    const response = await axios.post(
+      `${import.meta.env.VITE_BACKEND_URL}/user`,
+      userData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     console.log("Response from server:", response)
     if (response.data && response.data.data) {
       // Transform the response back to our User interface
@@ -115,7 +124,16 @@ export const updateUser = async (user: User): Promise<User> => {
       active: user.active,
     }
 
-    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/user/${user.id}`, userData)
+    const response = await axios.put(
+      `${import.meta.env.VITE_BACKEND_URL}/user/${user.id}`,
+      userData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
 
     if (response.data && response.data.data) {
       // Transform the response back to our User interface
@@ -149,7 +167,15 @@ export const updateUser = async (user: User): Promise<User> => {
 // Delete a user
 export const deleteUser = async (id: number) => {
   try {
-    const response = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/user/${id}`)
+    const response = await axios.delete(
+      `${import.meta.env.VITE_BACKEND_URL}/user/${id}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
 
     // Update our local cache
     initialUsers = initialUsers.filter((user) => user.id !== id)
@@ -165,7 +191,15 @@ export const deleteUser = async (id: number) => {
 // Search users
 export const searchUsers = async (query: string): Promise<User[]> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/user?searchTerm=${query}`)
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/user?searchTerm=${query}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     const users = response.data.data || []
 
     // Transform backend data to match our frontend User interface

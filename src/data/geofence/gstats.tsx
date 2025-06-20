@@ -224,6 +224,12 @@ export async function fetchGeofenceAlerts(geofenceId: string, vehicleNumber: str
   try {
     const response = await axios.get(
       `${import.meta.env.VITE_BACKEND_URL}/alerts/geofenece/${geofenceId}/vehicle/${vehicleNumber}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
     )
     return response.data
   } catch (error) {

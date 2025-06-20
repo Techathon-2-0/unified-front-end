@@ -84,7 +84,7 @@ export default function LandingPage() {
               whileTap={{ scale: 0.98 }}
             >
               <Button
-                onClick={() => navigate('/signin')}
+                onClick={() => navigate('/dashboard')}
                 className="px-4 sm:px-6 lg:px-8 py-2 lg:py-2.5 text-sm lg:text-base bg-[#d5233b] hover:bg-red-700 text-white rounded-lg font-medium shadow-sm transition-all duration-200"
               >
                 Get Started
@@ -121,7 +121,7 @@ export default function LandingPage() {
                     whileTap={{ scale: 0.98 }}
                   >
                     <Button
-                      onClick={() => navigate('/signin')}
+                      onClick={() => navigate('/dashboard')}
                       size="lg"
                       className="px-6 py-2.5 text-base bg-[#d5233b] hover:bg-red-700 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
                     >

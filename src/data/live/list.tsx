@@ -8,9 +8,18 @@ export const mockVehicles: Vehicle[] = []
 // Function to simulate API call to fetch vehicles
 export async function fetchVehicles(userId: string) {
   // Simulate API delay
-  const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/live/${userId}`, {
-    groups: []
-  });
+  const res = await axios.post(
+    `${import.meta.env.VITE_BACKEND_URL}/live/${userId}`,
+    {
+      groups: []
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+      },
+    }
+  );
 
   console.log("Fetched vehicles:", res.data.message)
 
@@ -21,11 +30,15 @@ export async function fetchVehicles(userId: string) {
 // New function for fetching registration details from database
 export const fetchRegistrationFromDb = async (vehicleNumber: string): Promise<RegistrationDbResponse> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/vahn/${vehicleNumber}`, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/vahn/${vehicleNumber}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
 
 
     if (response.status !== 200) {
@@ -62,6 +75,7 @@ export const refreshRegistrationDetails = async (vehicleNumber: string): Promise
       {
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
         },
       },
     )

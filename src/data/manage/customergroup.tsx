@@ -4,7 +4,15 @@ import type { CustomerGroup, Customer } from "../../types/manage/customergroup_t
 // Fetch all customer groups
 export const fetchCustomerGroups = async (): Promise<CustomerGroup[]> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/customer-group`)
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/customer-group`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     const groups = response.data.data || []
 
     return groups.map((group: any) => ({
@@ -26,7 +34,16 @@ export const createCustomerGroup = async (customerGroupData: {
   customerIds: number[]
 }): Promise<CustomerGroup> => {
   try {
-    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/customer-group`, customerGroupData)
+    const response = await axios.post(
+      `${import.meta.env.VITE_BACKEND_URL}/customer-group`,
+      customerGroupData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     return response.data.data
   } catch (error) {
     console.error("Error creating customer group:", error)
@@ -43,7 +60,16 @@ export const updateCustomerGroup = async (
   },
 ): Promise<CustomerGroup> => {
   try {
-    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/customer-group/${id}`, customerGroupData)
+    const response = await axios.put(
+      `${import.meta.env.VITE_BACKEND_URL}/customer-group/${id}`,
+      customerGroupData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     return response.data.data
   } catch (error) {
     console.error("Error updating customer group:", error)
@@ -54,7 +80,15 @@ export const updateCustomerGroup = async (
 // Delete a customer group
 export const deleteCustomerGroup = async (id: number): Promise<void> => {
   try {
-    await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/customer-group/${id}`)
+    await axios.delete(
+      `${import.meta.env.VITE_BACKEND_URL}/customer-group/${id}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
   } catch (error) {
     console.error("Error deleting customer group:", error)
     throw error
@@ -64,9 +98,16 @@ export const deleteCustomerGroup = async (id: number): Promise<void> => {
 // Search customer groups
 export const searchCustomerGroups = async (query: string): Promise<CustomerGroup[]> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/customer-group`, {
-      params: { query },
-    })
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/customer-group`,
+      {
+        params: { query },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     const groups = response.data.data || []
 
     return groups.map((group: any) => ({
@@ -85,7 +126,15 @@ export const searchCustomerGroups = async (query: string): Promise<CustomerGroup
 // Fetch all customers
 export const fetchCustomers = async (): Promise<Customer[]> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/customer`)
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/customer`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     return response.data.data.data || []
   } catch (error) {
     console.error("Error fetching customers:", error)
@@ -93,13 +142,19 @@ export const fetchCustomers = async (): Promise<Customer[]> => {
   }
 }
 
-
-
 // By USERID
 
 export async function fetchCustomerNames(userId: string): Promise<Customer[]> {
   try {
-    const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/customer-name-by-user/${userId}`)
+    const res = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/customer-name-by-user/${userId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     return res.data.data?.data?.customers || []
   } catch (error) {
     console.error("Error fetching customer names:", error)
@@ -109,7 +164,15 @@ export async function fetchCustomerNames(userId: string): Promise<Customer[]> {
 
 export async function fetchCustomerGroupsbyuser(userId: string): Promise<CustomerGroup[]> {
   try {
-    const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/customer-group-by-user/${userId}`)
+    const res = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/customer-group-by-user/${userId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     return res.data.data?.data?.customer_groups || []
   } catch (error) {
     console.error("Error fetching customer groups:", error)

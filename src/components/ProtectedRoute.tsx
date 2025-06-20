@@ -1,5 +1,6 @@
 import type React from "react"
-import { Navigate, useLocation } from "react-router-dom"
+import { useEffect } from "react"
+// import { useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 
 interface ProtectedRouteProps {
@@ -7,8 +8,14 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated, loading, isLoggingOut } = useAuth()
-  const location = useLocation()
+  const { isAuthenticated, loading } = useAuth()
+  // const location = useLocation()
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      window.location.href = `${import.meta.env.VITE_SSO_LOGIN_PAGE_URL}`
+    }
+  }, [loading, isAuthenticated])
 
   if (loading) {
     return (
@@ -19,16 +26,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!isAuthenticated) {
-    return (
-      <Navigate
-        to="/signin"
-        state={{
-          from: location,
-          showAccessDeniedToast: !isLoggingOut,
-        }}
-        replace
-      />
-    )
+    return null
   }
 
   return <>{children}</>

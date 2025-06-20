@@ -42,7 +42,15 @@ export let pendingOperation: ResponsibilityOperation | null = null
 // Function to fetch initial roles data
 export const fetchRoles = async (): Promise<Responsibility[]> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/roles`)
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/roles`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     const roles = response.data.roles
     initialResponsibilities = roles
     console.log("Fetched roles successfully:", roles)
@@ -66,7 +74,16 @@ export const createResponsibility = async (responsibility: Responsibility): Prom
       data: responsibilityWithTimestamp,
     }
 
-    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/role`, responsibilityWithTimestamp)
+    const response = await axios.post(
+      `${import.meta.env.VITE_BACKEND_URL}/role`,
+      responsibilityWithTimestamp,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     console.log("Create operation successful:", response.data)
     return response.data
   } catch (error) {
@@ -87,7 +104,16 @@ export const updateResponsibility = async (responsibility: Responsibility): Prom
       data: responsibilityWithTimestamp,
     }
     console.log("Updating responsibility with data:", responsibilityWithTimestamp)
-    const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/role`, responsibilityWithTimestamp)
+    const response = await axios.put(
+      `${import.meta.env.VITE_BACKEND_URL}/role`,
+      responsibilityWithTimestamp,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     return response.data
   } catch (error) {
     console.error("Update operation failed:", error)
@@ -102,7 +128,15 @@ export const deleteResponsibility = async (id: number): Promise<void> => {
       data: { id },
     }
 
-    await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/role/${id}`)
+    await axios.delete(
+      `${import.meta.env.VITE_BACKEND_URL}/role/${id}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    )
     console.log("Delete operation successful for ID:", id)
   } catch (error) {
     console.error("Delete operation failed:", error)

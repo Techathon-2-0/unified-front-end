@@ -2,7 +2,7 @@ import { Routes, Route, Outlet } from "react-router-dom"
 import { Toaster } from "react-hot-toast"
 import { AuthProvider } from "./context/AuthContext"
 import ProtectedRoute from "./components/ProtectedRoute"
-import SignIn from "./pages/Sigin"
+// import SignIn from "./pages/Sigin"
 import Home from "./pages/Home"
 import PageNotFound from "./components/pageNotFound"
 import Dashboard from "./pages/Dashboard/dashboard_page"
@@ -59,7 +59,7 @@ const Appp = () => {
         />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/signin" element={<SignIn />} />
+          {/* <Route path="/signin" element={<SignIn />} /> */}
 
           <Route
             element={
