@@ -17,7 +17,12 @@ export const userTypeOptions = ["Driver", "Customer", "Consignee", "Consignor", 
 // Fetch all users from the API
 export const fetchUsers = async (): Promise<User[]> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/user`)
+    const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/user`,{
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("access_token") || ""}`,
+      },
+    })
     const users = response.data.data || []
 
     // Transform backend data to match our frontend User interface
