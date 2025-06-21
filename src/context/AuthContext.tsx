@@ -84,7 +84,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // console.log("Authenticated token:", token);
       // console.log("User data:", userData);
       // console.log("Access token from localStorage:", authenticatedtoken);
-      if(authenticatedtoken&&!userData&&!token){
+      if(authenticatedtoken&&!token){
         try {
           // console.log("Checking SSO token validity")
           // console.log("SSO URL:", import.meta.env.VITE_SSO_URL)
@@ -111,7 +111,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             sameSite: 'strict' // Prevents CSRF
           })
 
-          Cookies.set("userData", JSON.stringify(userDataResp.data[0]), { 
+          Cookies.set("userData", userDataResp.data[0].id, { 
             expires: 1,
             secure: true,
             sameSite: 'strict'
@@ -121,19 +121,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
 
-      if (token && userData && localStorage.getItem("access_token")) {
+      if (token && localStorage.getItem("access_token")) {
         try {
-          const parsedUser = JSON.parse(userData)
+          const parsedUser = userData
           
 
-          apiClient.get(`/user/id/${parsedUser.id}`, {
+          apiClient.get(`/user/id/${parsedUser}`, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("access_token")}`
             }
           })
-          .then(() => {
+          .then((response) => {
             // User exists, set user data
-            setUser(parsedUser)
+            setUser(response.data)
             apiClient.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("access_token")}`
           })
           .catch((error) => {
