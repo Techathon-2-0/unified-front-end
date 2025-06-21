@@ -95,15 +95,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             }
           );
-          console.log(isok);
           console.log("SSO token check response:", isok.data);
-          const userDataResp = await axios.post(
-            `${import.meta.env.VITE_SSO_URL}/oauth/check_token`, // Replace with your auth service URL
-            new URLSearchParams({ authenticatedtoken }), // x-www-form-urlencoded body
+          const userDataResp = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/user?searchTerm=${isok.data.user_name}`,
             {
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+              headers: {
+                Authorization: `Bearer ${authenticatedtoken}`
+              }
             }
-        );
+          );
           // console.log(userDataResp.data);
           // const userDataResp = userData[0];
           Cookies.set("authToken", userDataResp.data.token, { 
