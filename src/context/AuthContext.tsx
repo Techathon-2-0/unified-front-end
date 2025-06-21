@@ -124,7 +124,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           .then((response) => {
             // User exists, set user data
             console.log(response.data.data);
-            setUser(response.data)
+            setUser(response.data.data);
             apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`
           })
           .catch((error) => {
