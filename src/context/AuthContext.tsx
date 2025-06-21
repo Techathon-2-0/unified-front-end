@@ -84,7 +84,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // console.log("Authenticated token:", token);
       // console.log("User data:", userData);
       // console.log("Access token from localStorage:", authenticatedtoken);
-      if(authenticatedtoken&&!token){
+      if(authenticatedtoken&&!token&& !userData) {
         try {
           // console.log("Checking SSO token validity")
           // console.log("SSO URL:", import.meta.env.VITE_SSO_URL)
@@ -110,7 +110,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             secure: true, // Only sent over HTTPS
             sameSite: 'strict' // Prevents CSRF
           })
-
+          console.log("User data from SSO:", userDataResp.data[0]);
           Cookies.set("userData", userDataResp.data[0].id, { 
             expires: 1,
             secure: true,
@@ -121,7 +121,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
 
-      if (token && localStorage.getItem("access_token")) {
+      if (userData&&token && localStorage.getItem("access_token")) {
         try {
           const parsedUser = userData
           
