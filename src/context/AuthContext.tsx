@@ -84,10 +84,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // console.log("Authenticated token:", token);
       // console.log("User data:", userData);
       // console.log("Access token from localStorage:", authenticatedtoken);
-      if(authenticatedtoken&&!user&&!token){
+      if(authenticatedtoken&&!userData&&!token){
         try {
-          console.log("Checking SSO token validity")
-          console.log("SSO URL:", import.meta.env.VITE_SSO_URL)
+          // console.log("Checking SSO token validity")
+          // console.log("SSO URL:", import.meta.env.VITE_SSO_URL)
           const isok = await axios.post(
             `${import.meta.env.VITE_SSO_URL}/oauth/check_token`, // Replace with your auth service URL
             new URLSearchParams({ authenticatedtoken }), // x-www-form-urlencoded body
@@ -95,7 +95,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             }
           );
-          const userDataResp = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/user?${isok.data.user_name}`);
+          console.log("SSO token check response:", isok.data);
+          const userDataResp = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/user?${isok.data.user_name}`,{
+            headers: {
+              Authorization: `Bearer ${authenticatedtoken}`
+            }
+          });
           // console.log(userDataResp.data);
           // const userDataResp = userData[0];
           Cookies.set("authToken", userDataResp.data.token, { 
