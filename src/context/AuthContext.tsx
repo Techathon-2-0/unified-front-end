@@ -123,7 +123,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (userData&&token && localStorage.getItem("access_token")) {
         try {
-          const parsedUser = userData
+          const parsedUser = Number(userData);
           
 
           apiClient.get(`/user/id/${parsedUser}`, {
@@ -133,6 +133,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           })
           .then((response) => {
             // User exists, set user data
+            console.log(response.data);
             setUser(response.data)
             apiClient.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("access_token")}`
           })
