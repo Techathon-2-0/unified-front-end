@@ -105,13 +105,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           );
           // console.log(userDataResp.data);
           // const userDataResp = userData[0];
-          Cookies.set("authToken", userDataResp.data.token, { 
+          Cookies.set("authToken", authenticatedtoken, { 
             expires: 1, // 1 day
             secure: true, // Only sent over HTTPS
             sameSite: 'strict' // Prevents CSRF
           })
 
-          Cookies.set("userData", JSON.stringify(userDataResp.data), { 
+          Cookies.set("userData", JSON.stringify(userDataResp.data[0]), { 
             expires: 1,
             secure: true,
             sameSite: 'strict'
