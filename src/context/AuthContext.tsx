@@ -90,7 +90,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // console.log("SSO URL:", import.meta.env.VITE_SSO_URL)
           const isok = await axios.post(
             `${import.meta.env.VITE_SSO_URL}/oauth/check_token`, // Replace with your auth service URL
-            new URLSearchParams({ authenticatedtoken }), // x-www-form-urlencoded body
+            new URLSearchParams({ token:authenticatedtoken }), // x-www-form-urlencoded body
             {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             }
