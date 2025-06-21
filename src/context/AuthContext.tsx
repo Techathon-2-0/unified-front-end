@@ -110,8 +110,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             secure: true, // Only sent over HTTPS
             sameSite: 'strict' // Prevents CSRF
           })
-          console.log("User data from SSO:", userDataResp);
-          Cookies.set("userData", userDataResp.data, { 
+          // console.log("User data from SSO:", userDataResp);
+          Cookies.set("userData", userDataResp.data.data[0].id, { 
             expires: 1,
             secure: true,
             sameSite: 'strict'
