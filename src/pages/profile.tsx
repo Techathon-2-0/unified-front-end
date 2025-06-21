@@ -128,7 +128,7 @@ export function ProfilePage() {
             <div className="h-32 bg-gradient-to-r from-[#d5233b] to-red-700 rounded-t-2xl"></div>
             <div className="absolute -bottom-12 left-8">
               <div className="h-24 w-24 rounded-3xl bg-gradient-to-br from-[#d5233b] to-red-700 flex items-center justify-center text-white text-3xl font-bold border-4 border-white dark:border-gray-800 shadow-lg">
-                {user.username?.substring(0, 2).toUpperCase()}
+                {user.username.substring(0, 2).toUpperCase()}
               </div>
             </div>
           </div>

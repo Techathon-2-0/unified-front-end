@@ -55,7 +55,7 @@ interface AuthProviderProps {
   children: ReactNode
 }
 
-// Define public routes that don't require authentication
+
 const PUBLIC_ROUTES = ['/']
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
@@ -66,31 +66,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const location = useLocation()
   const { showSuccessToast, showErrorToast, Toaster } = useToast({ position: "top-right" })
 
-  // Check for existing token on app load and validate it
+
   useEffect(() => {
     const checkAuth = async () => {
-      const token = Cookies.get("authToken")
+      const token = Cookies.get("access_token")||"";
       const userData = Cookies.get("userData")
       
       // Store current path on initial load if not on public routes
-      if(Cookies.get("access_token")){
-        localStorage.setItem("access_token", Cookies.get("access_token") || "");
+      if(token){
+        localStorage.setItem("access_token", token|| "");
       }
       if (!PUBLIC_ROUTES.includes(location.pathname)) {
         sessionStorage.setItem('redirectPath', location.pathname);
       }
-      const authenticatedtoken = Cookies.get("access_token")||"";
-      // console.log("enetr");
-      // console.log("Authenticated token:", token);
-      // console.log("User data:", userData);
-      // console.log("Access token from localStorage:", authenticatedtoken);
-      if(authenticatedtoken&&!token&& !userData) {
+
+
+      if(token&& !userData) {
         try {
           // console.log("Checking SSO token validity")
           // console.log("SSO URL:", import.meta.env.VITE_SSO_URL)
           const isok = await axios.post(
             `${import.meta.env.VITE_SSO_URL}/oauth/check_token`, // Replace with your auth service URL
-            new URLSearchParams({ token:authenticatedtoken }), // x-www-form-urlencoded body
+            new URLSearchParams({ token}), // x-www-form-urlencoded body
             {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             }
@@ -99,18 +96,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const userDataResp = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/user?searchTerm=${isok.data.user_name}`,
             {
               headers: {
-                Authorization: `Bearer ${authenticatedtoken}`
+                Authorization: `Bearer ${token}`
               }
             }
           );
-          // console.log(userDataResp.data);
-          // const userDataResp = userData[0];
-          Cookies.set("authToken", authenticatedtoken, { 
-            expires: 1, // 1 day
-            secure: true, // Only sent over HTTPS
-            sameSite: 'strict' // Prevents CSRF
-          })
-          // console.log("User data from SSO:", userDataResp);
+
           Cookies.set("userData", userDataResp.data.data[0].id, { 
             expires: 1,
             secure: true,
@@ -121,26 +111,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
 
-      if (userData&&token && localStorage.getItem("access_token")) {
+      if (userData) {
         try {
           const parsedUser = Number(userData);
           
 
           apiClient.get(`/user/id/${parsedUser}`, {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("access_token")}`
+              Authorization: `Bearer ${token}`
             }
           })
           .then((response) => {
             // User exists, set user data
-            console.log(response.data);
+            console.log(response.data.data);
             setUser(response.data)
-            apiClient.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("access_token")}`
+            apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`
           })
           .catch((error) => {
             // User doesn't exist or token is invalid, clear cookies
             console.error("Error validating user session:", error)
-            Cookies.remove("authToken")
             Cookies.remove("userData")
             localStorage.removeItem("rememberedEmail")
             localStorage.removeItem("rememberedPassword")
@@ -157,7 +146,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           })
         } catch (error) {
           console.error("Error parsing stored user data:", error)
-          Cookies.remove("authToken")
           Cookies.remove("userData")
           setLoading(false)
         }
@@ -247,7 +235,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         Authorization: `Bearer ${Cookies.get("access_token") || ""}`,
       },
     })
-    Cookies.remove("authToken")
+
     Cookies.remove("userData")
     delete apiClient.defaults.headers.common["Authorization"]
     window.location.href = `${import.meta.env.VITE_SSO_LOGIN_PAGE_URL}`;
