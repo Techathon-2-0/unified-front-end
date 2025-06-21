@@ -265,7 +265,7 @@ function Navbar({ toggleSidebar }: NavbarProps) {
               <div className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-all duration-200 ease-out">
                 <div className="relative">
                   <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-[#d5233b] via-red-600 to-red-700 flex items-center justify-center text-white font-semibold shadow-lg ring-2 ring-white dark:ring-gray-800 transition-all duration-200 group-hover:scale-105 group-hover:shadow-xl">
-                    {user.username.substring(0, 2).toUpperCase()}
+                    {user.username?.substring(0, 2).toUpperCase()}
                   </div>
                   {user.active && (
                     <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800 shadow-sm"></div>
@@ -294,7 +294,7 @@ function Navbar({ toggleSidebar }: NavbarProps) {
                 <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2">
                   <div>
                     <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-[#d5233b] via-red-600 to-red-700 flex items-center justify-center text-white text-2xl font-bold border-4 border-white dark:border-gray-900 shadow-2xl ring-4 ring-gray-100/50 dark:ring-gray-800/50">
-                      {user.username.substring(0, 2).toUpperCase()}
+                      {user.username?.substring(0, 2).toUpperCase()}
                     </div>
                     {/* {user.active && (
                       <div className="absolute -bottom-1 -right-1 h-6 w-6 bg-green-500 rounded-full border-3 border-white dark:border-gray-900 shadow-lg flex items-center justify-center">

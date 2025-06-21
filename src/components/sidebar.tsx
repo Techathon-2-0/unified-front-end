@@ -343,7 +343,7 @@ const LogisticsSidebar: React.FC<LogisticsSidebarProps> = ({ isOpen, closeSideba
           )}
         >
           <div className="h-8 w-8 text-xs rounded-2xl bg-gradient-to-r from-[#d5233b] to-red-700 flex items-center justify-center text-white shadow-md">
-            {user.username.substring(0, 2).toUpperCase()}
+            {user.username?.substring(0, 2).toUpperCase()}
           </div>
           <div
             className={cn(

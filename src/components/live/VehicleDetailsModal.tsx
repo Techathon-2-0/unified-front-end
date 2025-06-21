@@ -467,7 +467,7 @@ const VehicleDetailsModal = ({ vehicle, onClose }: VehicleDetailsModalProps) => 
                     : "bg-gray-500"
                 }`}
             >
-              {vehicle.id.substring(0, 1)}
+              {vehicle.id?.substring(0, 1)}
             </div>
             <div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">{vehicle.vehicleNumber}</h3>
