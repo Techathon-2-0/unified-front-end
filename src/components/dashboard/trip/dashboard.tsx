@@ -208,14 +208,16 @@ export default function TripDashboard() {
           counts.active++
       }
 
-      // Check if trip is on time or delayed
-      const hasDetention = trip.planned_stops.some(
-        (stop) => stop.detention_time && stop.detention_time !== "0" && stop.detention_time !== "",
-      )
-      if (hasDetention) {
-        counts.delayed++
-      } else {
-        counts.onTime++
+      // Only count onTime and delayed for non-inactive trips
+      if (trip.status.toLowerCase() !== "inactive") {
+        const hasDetention = trip.planned_stops.some(
+          (stop) => stop.detention_time && stop.detention_time !== "0" && stop.detention_time !== "",
+        )
+        if (hasDetention) {
+          counts.delayed++
+        } else {
+          counts.onTime++
+        }
       }
 
       // Alarm counts
@@ -541,15 +543,15 @@ export default function TripDashboard() {
             )
           : statusCardFilter === "ontime"
             ? filteredTrips.filter(trip => {
-                // On Time: no planned_stop has detention_time set and not "0" or ""
-                return !trip.planned_stops.some(
+                // On Time: no planned_stop has detention_time set and not "0" or "" and trip is not inactive
+                return trip.status.toLowerCase() !== "inactive" && !trip.planned_stops.some(
                   stop => stop.detention_time && stop.detention_time !== "0" && stop.detention_time !== ""
                 );
               })
             : statusCardFilter === "delayed"
               ? filteredTrips.filter(trip => {
-                  // Delayed: at least one planned_stop has detention_time set and not "0" or ""
-                  return trip.planned_stops.some(
+                  // Delayed: at least one planned_stop has detention_time set and not "0" or "" and trip is not inactive
+                  return trip.status.toLowerCase() !== "inactive" && trip.planned_stops.some(
                     stop => stop.detention_time && stop.detention_time !== "0" && stop.detention_time !== ""
                   );
                 })

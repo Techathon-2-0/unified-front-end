@@ -199,7 +199,8 @@ export function getDistanceFromGeofence(vehicle: Vehicle, geofence: Geofence | u
 
 // Function to convert vehicles to geofence vehicles with status
 export function convertToGeofenceVehicles(vehicles: Vehicle[], selectedGeofence: Geofence | null): GeofenceVehicle[] {
-  return vehicles.map((vehicle) => {
+  const safeVehicles = Array.isArray(vehicles) ? vehicles : [];
+  return safeVehicles.map((vehicle) => {
     const isCurrentlyInside = selectedGeofence ? isVehicleInGeofence(vehicle, selectedGeofence) : false
     const distanceFromGeofence = selectedGeofence ? getDistanceFromGeofence(vehicle, selectedGeofence) : 0
 

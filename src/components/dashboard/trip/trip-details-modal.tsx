@@ -18,7 +18,7 @@ import {
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-//import { formatDate } from "../../../components/formatdate"
+import { formatDate } from "../../../components/formatdate"
 import {
   fetchIntutrackData,
   refreshIntutrackData,
@@ -806,10 +806,13 @@ export function TripDetailsModal({
                 <div className="bg-white dark:bg-gray-800 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
                   <div className="space-y-2 text-sm">
                     <div>
-                      <strong>Current Consent:</strong> {intutrackData.current_consent}
+                      <strong>Current Consent:</strong> {intutrackData.consent}
                     </div>
-                    <div>
+                    {/* <div>
                       <strong>Consent:</strong> {intutrackData.consent}
+                    </div> */}
+                    <div>
+                      <strong>Last Consent:</strong> {formatDate(intutrackData.updated_at)}
                     </div>
                     <div>
                       <strong>Operator:</strong> {intutrackData.operator}

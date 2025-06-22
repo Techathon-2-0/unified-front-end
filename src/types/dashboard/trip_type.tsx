@@ -128,6 +128,7 @@ export interface IntutrackData {
   current_consent: string
   consent: string
   operator: string
+  updated_at: string
 }
 
 export type ViewMode = "list" | "map"
