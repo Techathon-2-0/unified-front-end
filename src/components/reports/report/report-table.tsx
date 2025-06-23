@@ -754,7 +754,7 @@ export function ReportTable({
                           <div className="text-sm text-gray-900 dark:text-gray-100">
                             {item.covered_distance}/{item.total_distance} km
                           </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">Total: {item.total_time}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">Total: {item.total_time}</div>
                           <div className="text-xs text-gray-500 dark:text-gray-400">Drive: {item.total_drive_time}</div>
                         </div>
                       </td>
@@ -769,7 +769,7 @@ export function ReportTable({
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center justify-between">
-                          <div className="text-sm text-gray-900 dark:text-gray-100">{item.stops.length} stops</div>
+                          <div className="text-sm text-gray-900 dark:text-gray-100 mr-2">{item.stops.length} stops</div>
                           <button
                             onClick={() => {
                               setSelectedTripData(item)
