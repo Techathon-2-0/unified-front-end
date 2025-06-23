@@ -11,7 +11,7 @@ import {
 } from "./ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { mockAlarms } from "../data/alarm/aconfig"
+import { fetchAlertsByUser } from "../data/alarm/alert"
 import { useAuth } from "../context/AuthContext"
 import DayNightToggleButton from './ui/dark-mode-button';
 
@@ -64,7 +64,23 @@ function Navbar({ toggleSidebar }: NavbarProps) {
     }
   }, [])
 
-  const unreadCount = mockAlarms.filter((n) => !n.read).length
+  // Add state for alerts
+  const [alerts, setAlerts] = useState<any[]>([])
+  const [loadingAlerts, setLoadingAlerts] = useState(false)
+
+  // Fetch alerts for the logged-in user
+  useEffect(() => {
+    if (user?.id) {
+      setLoadingAlerts(true)
+      fetchAlertsByUser(String(user.id))
+        .then((data) => setAlerts(Array.isArray(data) ? data : []))
+        .catch(() => setAlerts([]))
+        .finally(() => setLoadingAlerts(false))
+    }
+  }, [user?.id])
+
+  // Calculate unread count from alerts
+  const unreadCount = alerts.filter((n) => !n.read).length
 
   const handleProfileClick = () => {
     navigate("/profile")
@@ -153,9 +169,16 @@ function Navbar({ toggleSidebar }: NavbarProps) {
                 </div>
 
                 <div className="overflow-y-auto" style={{ maxHeight: isMobile ? "calc(100vh - 170px)" : "350px" }}>
-                  {mockAlarms.length > 0 ? (
+                  {loadingAlerts ? (
+                    <div className="py-12 px-4 text-center">
+                      <div className="mx-auto h-16 w-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-3">
+                        <Bell className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                      </div>
+                      <p className="text-gray-600 dark:text-gray-300 font-medium">Loading notifications...</p>
+                    </div>
+                  ) : alerts.length > 0 ? (
                     <div>
-                      {mockAlarms.map((alarm) => (
+                      {alerts.map((alarm) => (
                         <div
                           key={alarm.id}
                           className={cn(

@@ -20,6 +20,7 @@ export default function GeofenceStats() {
   const [filteredCount, setFilteredCount] = useState(0)
   const [geofences, setGeofences] = useState<Geofence[]>([])
   const [vehicles, setVehicles] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   const [isMapFullScreen, setIsMapFullScreen] = useState(() => {
     return typeof window !== "undefined" && localStorage.getItem("gstats-map-fullscreen") === "1"
   })
@@ -55,13 +56,16 @@ export default function GeofenceStats() {
   useEffect(() => {
     // Fetch vehicles on mount
     if (user?.id) {
+      setLoading(true)
       fetchVehicles(String(user.id))
         .then((data) => {
           setVehicles(data)
+          setLoading(false)
         })
         .catch((error) => {
           console.error("Error fetching vehicles:", error)
           setVehicles([])
+          setLoading(false)
         })
     }
   }, [user?.id])
@@ -199,13 +203,17 @@ export default function GeofenceStats() {
   const handleRefresh = () => {
     // Only refresh vehicle data, not the whole page
     if (user?.id) {
+      setLoading(true)
       fetchVehicles(String(user.id))
         .then((data) => {
           setVehicles(data)
+          setLoading(false)
           showSuccessToast("Vehicles refreshed successfully", "The vehicle data has been updated.")
         })
         .catch((error) => {
           console.error("Error refreshing vehicles:", error)
+          setVehicles([])
+          setLoading(false)
           showErrorToast("Failed to refresh vehicles", "An error occurred while refreshing vehicle data.")
         })
     }
@@ -420,6 +428,7 @@ export default function GeofenceStats() {
               sortDirection={sortDirection}
               setSortDirection={setSortDirection}
               allVehicles={convertToGeofenceVehicles(vehicles, selectedGeofenceData)}
+              loading={loading}
             />
           </div>
 

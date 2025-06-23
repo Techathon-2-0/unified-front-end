@@ -37,7 +37,6 @@ interface AuthContextType {
   logout: () => void
   isAuthenticated: boolean
   loading: boolean
-  updatePassword: (oldPassword: string, newPassword: string) => Promise<boolean>
   isLoggingOut: boolean // Add this flag
 }
 
@@ -76,9 +75,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if(token){
         localStorage.setItem("access_token", token|| "");
       }
-      if (!PUBLIC_ROUTES.includes(location.pathname)) {
-        sessionStorage.setItem('redirectPath', location.pathname);
-      }
+      // if (!PUBLIC_ROUTES.includes(location.pathname)) {
+      //   sessionStorage.setItem('redirectPath', location.pathname);
+      // }
 
 
       if(token&& !userData) {
@@ -86,7 +85,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // console.log("Checking SSO token validity")
           // console.log("SSO URL:", import.meta.env.VITE_SSO_URL)
           const isok = await axios.post(
-            `${import.meta.env.VITE_SSO_URL}/oauth/check_token`, // Replace with your auth service URL
+            `${import.meta.env.VITE_SSO_URL}/oauth/check_token`,
             new URLSearchParams({ token}), // x-www-form-urlencoded body
             {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
@@ -134,6 +133,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             localStorage.removeItem("rememberedEmail")
             localStorage.removeItem("rememberedPassword")
             localStorage.removeItem("rememberMe")
+            localStorage.removeItem("access_token")
             
             // Only redirect to signin if user is on a protected route
             console.log("Redirecting to SSO login page due to invalid session")
@@ -170,7 +170,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true)
       setIsLoggingOut(false) 
-
 
       const response = await apiClient.post("/login", {
         username,
@@ -227,49 +226,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
-  const logout = async() => {
-    setIsLoggingOut(true)
-    setUser(null)
-    await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/user/logout`, {
-      headers: {
-        Authorization: `Bearer ${Cookies.get("access_token") || ""}`,
-      },
-    })
+  const logout = async () => {
+    setIsLoggingOut(true);
+    const userName = user?.name;
 
-    Cookies.remove("userData")
-    delete apiClient.defaults.headers.common["Authorization"]
-    window.location.href = `${import.meta.env.VITE_SSO_LOGIN_PAGE_URL}`;
-    showSuccessToast("Logout Successful", `${user?.name} you have been logged out.`)
-
-    setTimeout(() => {
-      setIsLoggingOut(false)
-    }, 100)
-  }
-
-  const updatePassword = async (oldPassword: string, newPassword: string): Promise<boolean> => {
     try {
-      if (!user) return false
+      await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/user/logout`, {
+        headers: {
+          Authorization: `Bearer ${Cookies.get("access_token") || ""}`,
+        },
+      });
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      Cookies.remove("userData");
+      Cookies.remove("access_token");
+      Cookies.remove("authToken");
 
-      await apiClient.put("/user/updatepass", {
-        id: user.id,
-        oldPassword,
-        newPassword,
-      })
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("rememberedEmail");
+      localStorage.removeItem("rememberedPassword");
+      localStorage.removeItem("rememberMe");
 
-      showSuccessToast("Password Updated", "Password updated successfully")
-      return true
-    } catch (error: any) {
-      console.error("Password update error:", error)
-      if (error.response?.status === 400) {
-        showErrorToast("Update Failed", "Old password is incorrect")
-      } else if (error.response?.status === 404) {
-        showErrorToast("User Error", "User not found")
-      } else {
-        showErrorToast("Update Failed", "Failed to update password")
-      }
-      return false
+      delete apiClient.defaults.headers.common["Authorization"];
+      setUser(null);
+
+      showSuccessToast("Logout Successful", `${userName} you have been logged out.`);
+      
+      setTimeout(() => {
+        setIsLoggingOut(false);
+        window.location.href = `${import.meta.env.VITE_SSO_LOGIN_PAGE_URL}`;
+      }, 1000);
     }
-  }
+  };
+
 
   const value: AuthContextType = {
     user,
@@ -277,7 +267,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     isAuthenticated: !!user,
     loading,
-    updatePassword,
     isLoggingOut, // Add to context value
   }
 

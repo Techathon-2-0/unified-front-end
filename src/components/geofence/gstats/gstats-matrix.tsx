@@ -57,6 +57,7 @@ export function GeofenceMatrix({
   sortDirection,
   setSortDirection,
   allVehicles,
+  loading, // <-- add loading prop
 }: GeofenceMatrixProps & {
   typeFilter: string[]
   setTypeFilter: (v: string[]) => void
@@ -75,6 +76,7 @@ export function GeofenceMatrix({
   sortDirection: SortDirection
   setSortDirection: (v: SortDirection) => void
   allVehicles: any[]
+  loading?: boolean
 }) {
   const [currentPage, setCurrentPage] = useState(1)
   const [groups, setGroups] = useState<Group[]>([])
@@ -574,7 +576,18 @@ export function GeofenceMatrix({
                 </TableRow>
               </TableHeader>
               <TableBody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
-                {currentVehicles.length === 0 ? (
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={12} className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-300">
+                      <div className="flex flex-col items-center justify-center space-y-3">
+                        <div className="rounded-full bg-slate-100 dark:bg-slate-800 p-3 animate-pulse">
+                          <Users className="h-6 w-6 text-slate-400 dark:text-slate-500" />
+                        </div>
+                        <p>Loading vehicles...</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : currentVehicles.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={9} className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-300">
                       <div className="flex flex-col items-center justify-center space-y-3">

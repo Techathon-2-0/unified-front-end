@@ -149,7 +149,7 @@ const PerformanceMetrics = () => {
     const totalScore = utilizationScore + efficiencyWeight + activeTripWeight
     
 
-    if (totalScore >= 90) {
+    if (totalScore >= 75) {
       return { 
         rating: "Excellent", 
         lightBg: "from-green-50 to-green-100",
@@ -159,7 +159,7 @@ const PerformanceMetrics = () => {
         lightText: "text-green-600",
         darkText: "dark:text-green-400"
       }
-    } else if (totalScore >= 75) {
+    } else if (totalScore >= 50) {
       return { 
         rating: "Good", 
         lightBg: "from-blue-50 to-blue-100",
@@ -169,7 +169,7 @@ const PerformanceMetrics = () => {
         lightText: "text-blue-600",
         darkText: "dark:text-blue-400"
       }
-    } else if (totalScore >= 60) {
+    } else if (totalScore >= 25) {
       return { 
         rating: "Average", 
         lightBg: "from-yellow-50 to-yellow-100",

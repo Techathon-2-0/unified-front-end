@@ -289,6 +289,33 @@ export function TripMap({
         }
       })
 
+      // Add destination marker if destination_coordinates are valid and not [0,0]
+      if (
+        Array.isArray(trip.destination_coordinates) &&
+        trip.destination_coordinates.length === 2 &&
+        typeof trip.destination_coordinates[0] === "number" &&
+        typeof trip.destination_coordinates[1] === "number" &&
+        !(trip.destination_coordinates[0] === 0 && trip.destination_coordinates[1] === 0)
+      ) {
+        const destinationMarker = L.marker(trip.destination_coordinates, {
+          icon: L.divIcon({
+            className: "custom-div-icon",
+            html: `<div class="destination-marker">END</div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 15],
+          }),
+        })
+          .addTo(mapInstanceRef.current!)
+          .bindPopup(`
+            <div class="popup-content">
+              <h3>Destination</h3>
+              <p>${trip.destination}</p>
+            </div>
+          `)
+
+        markersRef.current.push(destinationMarker)
+      }
+
       // Add current location if trip is not inactive
       if (
         trip.status.toLowerCase() !== "inactive" &&
@@ -777,6 +804,20 @@ export function TripMap({
           font-size: 10px;
           box-shadow: 0 2px 4px rgba(0,0,0,0.3);
           border: 2px solid white;
+        }
+        
+        .destination-marker {
+          width: 30px;
+          height: 30px;
+          border-radius: 4px;
+          background-color: #dc2626;
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          font-size: 8px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         
         .popup-content {

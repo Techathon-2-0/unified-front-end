@@ -1,4 +1,4 @@
-import { useState } from "react"
+//import { useState } from "react"
 import { motion } from "framer-motion"
 import {
   User,
@@ -9,17 +9,17 @@ import {
   Users,
   MapPin,
   Calendar,
-  Edit3,
-  Save,
-  X,
-  Eye,
-  EyeOff,
+  // Edit3,
+  // Save,
+  // X,
+  // Eye,
+  // EyeOff,
   CheckCircle,
   AlertCircle,
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+//import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -28,16 +28,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useAuth } from "../context/AuthContext"
 
 export function ProfilePage() {
-  const { user, updatePassword } = useAuth()
-  const [isEditingPassword, setIsEditingPassword] = useState(false)
-  const [currentPassword, setCurrentPassword] = useState("")
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
-  const [showNewPassword, setShowNewPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [isLoading, setIsLoading] = useState(false)
+  const { user } = useAuth()
+  // const [isEditingPassword, setIsEditingPassword] = useState(false)
+  // const [currentPassword, setCurrentPassword] = useState("")
+  // const [newPassword, setNewPassword] = useState("")
+  // const [confirmPassword, setConfirmPassword] = useState("")
+  // const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  // const [showNewPassword, setShowNewPassword] = useState(false)
+  // const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  // const [errors, setErrors] = useState<Record<string, string>>({})
+  // const [isLoading, setIsLoading] = useState(false)
 
   if (!user) {
     return (
@@ -47,62 +47,48 @@ export function ProfilePage() {
     )
   }
 
-  const handlePasswordEdit = () => {
-    setIsEditingPassword(true)
-    setCurrentPassword("")
-    setNewPassword("")
-    setConfirmPassword("")
-    setErrors({})
-  }
+  // const handlePasswordEdit = () => {
+  //   setIsEditingPassword(true)
+  //   setCurrentPassword("")
+  //   setNewPassword("")
+  //   setConfirmPassword("")
+  //   setErrors({})
+  // }
 
-  const handlePasswordSave = async () => {
-    const newErrors: Record<string, string> = {}
+  // const handlePasswordSave = async () => {
+  //   const newErrors: Record<string, string> = {}
 
-    if (!currentPassword) {
-      newErrors.currentPassword = "Current password is required"
-    }
+  //   if (!currentPassword) {
+  //     newErrors.currentPassword = "Current password is required"
+  //   }
 
-    if (!newPassword) {
-      newErrors.newPassword = "New password is required"
-    } else if (newPassword.length < 6) {
-      newErrors.newPassword = "Password must be at least 6 characters"
-    }
+  //   if (!newPassword) {
+  //     newErrors.newPassword = "New password is required"
+  //   } else if (newPassword.length < 6) {
+  //     newErrors.newPassword = "Password must be at least 6 characters"
+  //   }
 
-    if (!confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your new password"
-    } else if (newPassword !== confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match"
-    }
+  //   if (!confirmPassword) {
+  //     newErrors.confirmPassword = "Please confirm your new password"
+  //   } else if (newPassword !== confirmPassword) {
+  //     newErrors.confirmPassword = "Passwords do not match"
+  //   }
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
-      return
-    }
+  //   if (Object.keys(newErrors).length > 0) {
+  //     setErrors(newErrors)
+  //     return
+  //   }
 
-    setIsLoading(true)
-    try {
-      const success = await updatePassword(currentPassword, newPassword)
-      if (success) {
-        setIsEditingPassword(false)
-        setCurrentPassword("")
-        setNewPassword("")
-        setConfirmPassword("")
-        setErrors({})
-      }
-    } catch (error) {
-      console.error("Password update failed:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  //   setIsLoading(true)
+  // }
 
-  const handlePasswordCancel = () => {
-    setIsEditingPassword(false)
-    setCurrentPassword("")
-    setNewPassword("")
-    setConfirmPassword("")
-    setErrors({})
-  }
+  // const handlePasswordCancel = () => {
+  //   setIsEditingPassword(false)
+  //   setCurrentPassword("")
+  //   setNewPassword("")
+  //   setConfirmPassword("")
+  //   setErrors({})
+  // }
 
   // const formatDate = (dateString: string) => {
   //   return new Date(dateString).toLocaleDateString("en-US", {
@@ -226,10 +212,10 @@ export function ProfilePage() {
                   </div>
                 </div>
 
-                <Separator className="dark:bg-gray-700" />
+                {/* <Separator className="dark:bg-gray-700" /> */}
 
                 {/* Password Section */}
-                <div className="space-y-4">
+                {/* <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Password</Label>
@@ -398,7 +384,7 @@ export function ProfilePage() {
                       <span className="text-gray-900 dark:text-gray-100">••••••••••••</span>
                     </div>
                   )}
-                </div>
+                </div> */}
               </CardContent>
             </Card>
           </motion.div>

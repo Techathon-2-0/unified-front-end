@@ -12,9 +12,9 @@ const AlertSummary = () => {
   useEffect(() => {
     if (user?.id) {
       fetchAlertsByUser(String(user.id)).then((res) => {
-        // If API returns { alerts: [...], pagination: {...} }
-        if (res && Array.isArray(res.alerts)) {
-          setAlerts(res.alerts)
+        // If API returns { data: [...] }
+        if (res && Array.isArray(res.data)) {
+          setAlerts(res.data)
         } else if (Array.isArray(res)) {
           setAlerts(res)
         } else {
@@ -26,9 +26,9 @@ const AlertSummary = () => {
 
   const alertStats = {
     total: alerts.length,
-    critical: alerts.filter((a) => a.severityType === "Critical").length,
-    warning: alerts.filter((a) => a.severityType === "Warning").length,
-    general: alerts.filter((a) => a.severityType === "General").length,
+    critical: alerts.filter((a) => a.severity_type === "Critical").length,
+    warning: alerts.filter((a) => a.severity_type === "Warning").length,
+    general: alerts.filter((a) => a.severity_type === "General").length,
   }
 
   const criticalRate = alertStats.total > 0

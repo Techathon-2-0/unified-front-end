@@ -2,40 +2,7 @@ import axios from "axios"
 import type { Alarm } from "../../types/alarm/aconfig_type"
 
 // Mock data for alarms (will be replaced with API data)
-export const mockAlarms: Alarm[] = [
-  {
-    id: "8",
-    type: "Overspeeding",
-    severityType: "Critical",
-    description: "Alerts when vehicle exceeds speed limit",
-    assignedTo: "John Doe",
-    createdOn: "(20-01-2452/14:30)",
-    updatedOn: "(25-02-2452/09:15)",
-    alarmGeneration: "Always",
-    enableGeofence: false,
-    groups: ["Group A", "Group B"],
-    email: "alerts@example.com",
-    sms: "+1234567890",
-    thresholdValue: "80",
-    status: "Active",
-  },
-  {
-    id: "9",
-    type: "Geofence",
-    severityType: "Warning",
-    description: "Alerts when vehicle goes outside the geofence",
-    assignedTo: "Jane Smith",
-    createdOn: "(15-01-2452/10:45)",
-    updatedOn: "(26-02-2452/11:20)",
-    alarmGeneration: "Conditional",
-    enableGeofence: true,
-    groups: ["Group C"],
-    email: "support@example.com",
-    sms: "+9876543210",
-    thresholdValue: "",
-    status: "Inactive",
-  },
-]
+export const mockAlarms: Alarm[] = []
 
 // Fetch all alarms from the API with related data
 export const fetchAlarms = async (): Promise<Alarm[]> => {
