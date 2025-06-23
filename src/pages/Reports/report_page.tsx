@@ -1,11 +1,8 @@
-import type React from "react";
+import type React from "react"
+import { ReportManagementPage } from "@/components/reports/report/report-management"
 
-const report: React.FC = () => {
-  return(
-    <p>
-        welcome to the report page
-    </p>
-  )
-};
+const ReportPage: React.FC = () => {
+  return <ReportManagementPage />
+}
 
-export default report;
+export default ReportPage

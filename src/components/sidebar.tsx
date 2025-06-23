@@ -72,12 +72,12 @@ const navItems = [
   {
     icon: FileText,
     label: "Reports",
-    path: "/reports",
-    hasChildren: true,
-    children: [
-      { label: "Report", path: "/reports/report" },
-      { label: "Schedule", path: "/reports/schedule" },
-    ],
+    path: "/reports/report",
+    //hasChildren: true,
+    // children: [
+    //   { label: "Report", path: "/reports/report" },
+    //   { label: "Schedule", path: "/reports/schedule" },
+    // ],
   },
   // {
   //   icon: Briefcase,

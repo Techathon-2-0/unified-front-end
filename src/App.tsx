@@ -12,7 +12,6 @@ import Trail from "./pages/trail/trail_page"
 import Alarm from "./pages/Alarm/aconfig_page"
 import Report from "./pages/Reports/report_page"
 import Schedule from "./pages/Reports/schedule_page"
-import Back from "./pages/backoffice/backOffice_page"
 import GConfig from "./pages/geofence/gconfig_page"
 import GeofenceGroupPage from "./pages/geofence/ggroup_page"
 import GeofenceStats from "./pages/geofence/gstats_page"
@@ -81,7 +80,7 @@ const Appp = () => {
             <Route path="/geofence/Stats" element={<GeofenceStats />} />
             <Route path="/reports/report" element={<Report />} />
             <Route path="/reports/schedule" element={<Schedule />} />
-            <Route path="/back-office" element={<Back />} />
+            
             <Route path="/user-management/responsibility" element={<Responsibility />} />
             <Route path="/user-management/user" element={<UserManagement />} />
             <Route path="/manage/vehicles" element={<Entities />} />

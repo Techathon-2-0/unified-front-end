@@ -91,9 +91,28 @@ const VehicleTracker = () => {
           ? filters.trip.split(",")
           : []
       if (selectedTrips.length > 0) {
-        result = result.filter((vehicle) =>
-          selectedTrips.includes(vehicle.trip_status)
-        )
+        result = result.filter((vehicle) => {
+          // Map frontend "Active"/"Inactive" to backend trip_status values
+          const tripStatus = vehicle.trip_status
+          let match = false
+          if (selectedTrips.includes("Active")) {
+            // Active: at_stop_delivery, at_stop_pickup, in_transit
+            if (
+              tripStatus === "at_stop_delivery" ||
+              tripStatus === "at_stop_pickup" ||
+              tripStatus === "in_transit"
+            ) {
+              match = true
+            }
+          }
+          if (selectedTrips.includes("Inactive")) {
+            // Inactive: inactive or empty
+            if (tripStatus === "inactive" || tripStatus === "" || tripStatus == null) {
+              match = true
+            }
+          }
+          return match
+        })
       }
     }
 
