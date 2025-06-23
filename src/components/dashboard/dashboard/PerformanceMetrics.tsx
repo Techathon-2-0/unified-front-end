@@ -128,7 +128,9 @@ const PerformanceMetrics = () => {
   const efficiencyScore = 100 - alertRate
 
   // Use trip_status for active trips
-  const activeTrips = vehicles.filter(v => v.trip_status === "Active").length
+  // Consider these trip_status values as active:
+  const activeTripStatuses = ["in_transit", "at_stop_delivery", "at_stop_pickup"];
+  const activeTrips = vehicles.filter(v => activeTripStatuses.includes(v.trip_status)).length
   const activeTripsPercent = totalVehicles > 0 ? Math.round((activeTrips / totalVehicles) * 100) : 0
 
   // Overall performance is calculated using only:
