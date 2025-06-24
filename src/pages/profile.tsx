@@ -8,14 +8,6 @@ import {
   Tag,
   Users,
   MapPin,
-  Calendar,
-  // Edit3,
-  // Save,
-  // X,
-  // Eye,
-  // EyeOff,
-  CheckCircle,
-  AlertCircle,
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -29,15 +21,6 @@ import { useAuth } from "../context/AuthContext"
 
 export function ProfilePage() {
   const { user } = useAuth()
-  // const [isEditingPassword, setIsEditingPassword] = useState(false)
-  // const [currentPassword, setCurrentPassword] = useState("")
-  // const [newPassword, setNewPassword] = useState("")
-  // const [confirmPassword, setConfirmPassword] = useState("")
-  // const [showCurrentPassword, setShowCurrentPassword] = useState(false)
-  // const [showNewPassword, setShowNewPassword] = useState(false)
-  // const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  // const [errors, setErrors] = useState<Record<string, string>>({})
-  // const [isLoading, setIsLoading] = useState(false)
 
   if (!user) {
     return (
@@ -46,57 +29,6 @@ export function ProfilePage() {
       </div>
     )
   }
-
-  // const handlePasswordEdit = () => {
-  //   setIsEditingPassword(true)
-  //   setCurrentPassword("")
-  //   setNewPassword("")
-  //   setConfirmPassword("")
-  //   setErrors({})
-  // }
-
-  // const handlePasswordSave = async () => {
-  //   const newErrors: Record<string, string> = {}
-
-  //   if (!currentPassword) {
-  //     newErrors.currentPassword = "Current password is required"
-  //   }
-
-  //   if (!newPassword) {
-  //     newErrors.newPassword = "New password is required"
-  //   } else if (newPassword.length < 6) {
-  //     newErrors.newPassword = "Password must be at least 6 characters"
-  //   }
-
-  //   if (!confirmPassword) {
-  //     newErrors.confirmPassword = "Please confirm your new password"
-  //   } else if (newPassword !== confirmPassword) {
-  //     newErrors.confirmPassword = "Passwords do not match"
-  //   }
-
-  //   if (Object.keys(newErrors).length > 0) {
-  //     setErrors(newErrors)
-  //     return
-  //   }
-
-  //   setIsLoading(true)
-  // }
-
-  // const handlePasswordCancel = () => {
-  //   setIsEditingPassword(false)
-  //   setCurrentPassword("")
-  //   setNewPassword("")
-  //   setConfirmPassword("")
-  //   setErrors({})
-  // }
-
-  // const formatDate = (dateString: string) => {
-  //   return new Date(dateString).toLocaleDateString("en-US", {
-  //     year: "numeric",
-  //     month: "long",
-  //     day: "numeric",
-  //   })
-  // }
 
   console.log("User data:", user)
 
@@ -568,44 +500,6 @@ export function ProfilePage() {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Account Status
-            <Card className="border-gray-200 dark:border-gray-800 dark:bg-gray-800">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
-                  <Calendar className="h-5 w-5" />
-                  Account Status
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Status</span>
-                  <div className="flex items-center gap-2">
-                    {user.active ? (
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-500" />
-                    )}
-                    <Badge
-                      variant={user.active ? "default" : "secondary"}
-                      className={
-                        user.active
-                          ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 hover:bg-green-100 dark:hover:bg-green-900"
-                          : "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100 hover:bg-red-100 dark:hover:bg-red-900"
-                      }
-                    >
-                      {user.active ? "Active" : "Inactive"}
-                    </Badge>
-                  </div>
-                </div>
-
-                <div className="text-center pt-4 border-t">
-                  <p className="text-xs text-gray-500">
-                    Account created on <span className="font-medium">{formatDate(new Date().toISOString())}</span>
-                  </p>
-                </div>
-              </CardContent>
-            </Card> */}
           </motion.div>
         </div>
       </div>
