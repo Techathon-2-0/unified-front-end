@@ -121,7 +121,7 @@ const PerformanceMetrics = () => {
     )
   : 0;
 
-  const criticalAlerts = alerts.filter((a) => a.severityType === "Critical").length
+  const criticalAlerts = alerts.filter((a) => a.severity_type === "Critical").length
 
   const fleetUtilization = totalVehicles > 0 ? Math.round((activeVehicles / totalVehicles) * 100) : 0
   const alertRate = totalVehicles > 0 ? Math.round((criticalAlerts / totalVehicles) * 100) : 0

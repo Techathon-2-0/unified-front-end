@@ -56,6 +56,7 @@ interface Alert {
   shipments: Shipment[]
   entity: Entity
   notification_sent: NotificationSent
+  severity_type?: string // Add optional severity_type field
 }
 
 // interface ApiResponse {
@@ -111,18 +112,6 @@ const getTimeAgo = (dateString: string) => {
   }
 }
 
-const getSeverityType = (status: number, alarmCategory: string) => {
-  // Map status to severity - you can adjust this logic based on your business rules
-  if (status === 1) return "Critical" // Active alerts are critical
-  if (status === 2) return "Warning" // Manually closed alerts are warnings
-  
-  // You can also map based on alarm category
-  if (alarmCategory === "Speeding") return "Critical"
-  if (alarmCategory === "Geofence") return "Warning"
-  
-  return "Info" // Default
-}
-
 const container = {
   hidden: { opacity: 0 },
   show: {
@@ -166,7 +155,83 @@ const AlertsList: React.FC<AlertsListProps> = ({ userId }) => {
         }
         const response = await fetchAlertsByUser(String(user.id))
         console.log("API response:", response) // Debug: log API response
-        if (response && response.success && response.data) {
+        // If response is the new format (array of alerts with alertId, status, alarmId, createdAt, severity_type)
+        if (Array.isArray(response?.data)) {
+          // Map the new API response to the Alert type used in this component
+          const mappedAlerts: Alert[] = response.data.map((item: any) => ({
+            id: item.alertId,
+            alert_type: {
+              id: item.alarmId,
+              alarm_type_id: item.alarmId,
+              alarm_category: "", // Not provided in new API, fallback or fetch if needed
+              alarm_value: 0,
+              rest_duration: null,
+              geofence_status: null,
+              alarm_generation: false,
+              active_start_time_range: "",
+              active_end_time_range: "",
+              active_trip: false,
+              alarm_status: false,
+              description: "", // Not provided
+            },
+            status: item.status,
+            status_text: item.status === 1 ? "Active" : item.status === 2 ? "Manually Closed" : "Inactive",
+            created_at: item.createdAt,
+            updated_at: item.createdAt,
+            duration: "", // Not provided
+            shipments: [],
+            entity: {
+              id: 0,
+              vehicleNumber: "", // Not provided
+              type: "", // Not provided
+            },
+            notification_sent: {
+              emails: [],
+              phone_numbers: [],
+            },
+            // Add severity_type for easier access
+            severity_type: item.severity_type,
+          }))
+          setAlerts(mappedAlerts)
+          setTotalAlerts(mappedAlerts.length)
+        } else if (response && response.success && response.data && Array.isArray(response.data)) {
+          // Defensive: handle if response.data is already an array
+          const mappedAlerts: Alert[] = response.data.map((item: any) => ({
+            id: item.alertId,
+            alert_type: {
+              id: item.alarmId,
+              alarm_type_id: item.alarmId,
+              alarm_category: "",
+              alarm_value: 0,
+              rest_duration: null,
+              geofence_status: null,
+              alarm_generation: false,
+              active_start_time_range: "",
+              active_end_time_range: "",
+              active_trip: false,
+              alarm_status: false,
+              description: "",
+            },
+            status: item.status,
+            status_text: item.status === 1 ? "Active" : item.status === 2 ? "Manually Closed" : "Inactive",
+            created_at: item.createdAt,
+            updated_at: item.createdAt,
+            duration: "",
+            shipments: [],
+            entity: {
+              id: 0,
+              vehicleNumber: "",
+              type: "",
+            },
+            notification_sent: {
+              emails: [],
+              phone_numbers: [],
+            },
+            severity_type: item.severity_type,
+          }))
+          setAlerts(mappedAlerts)
+          setTotalAlerts(mappedAlerts.length)
+        } else if (response && response.success && response.data && response.data.alerts) {
           setAlerts(response.data.alerts || [])
           setTotalAlerts(response.data.pagination?.total || 0)
         } else if (Array.isArray(response)) {
@@ -191,7 +256,12 @@ const AlertsList: React.FC<AlertsListProps> = ({ userId }) => {
   }, [userId])
 
   const recentAlarms = alerts.slice(0, 8)
-  const criticalCount = recentAlarms.filter((a) => getSeverityType(a.status, a.alert_type.alarm_category) === "Critical").length
+  // Use severity_type from alert if present, fallback to old logic if not
+  const criticalCount = recentAlarms.filter((a) =>
+    (a as any).severity_type
+      ? (a as any).severity_type === "Critical"
+      : a.status === 1
+  ).length
 
   if (loading) {
     return (
@@ -303,7 +373,14 @@ const AlertsList: React.FC<AlertsListProps> = ({ userId }) => {
       <ScrollArea className="flex-1 p-2">
         <motion.div variants={container} initial="hidden" animate="show" className="space-y-2">
           {recentAlarms.map((alarm) => {
-            const severityType = getSeverityType(alarm.status, alarm.alert_type.alarm_category)
+            // Use severity_type from API if present, fallback to old logic
+            const severityType = (alarm as any).severity_type
+              ? (alarm as any).severity_type
+              : alarm.status === 1
+                ? "Critical"
+                : alarm.status === 2
+                  ? "Warning"
+                  : "Info"
             return (
               <motion.div
                 key={alarm.id}
