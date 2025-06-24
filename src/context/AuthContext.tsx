@@ -231,7 +231,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const userName = user?.name;
 
     try {
-      await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/user/logout`, {
+      await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/userlogout`, {
         headers: {
           Authorization: `Bearer ${Cookies.get("access_token") || ""}`,
         },
