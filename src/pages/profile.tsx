@@ -569,7 +569,7 @@ export function ProfilePage() {
               </CardContent>
             </Card>
 
-            {/* Account Status */}
+            {/* Account Status
             <Card className="border-gray-200 dark:border-gray-800 dark:bg-gray-800">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
@@ -599,13 +599,13 @@ export function ProfilePage() {
                   </div>
                 </div>
 
-                {/* <div className="text-center pt-4 border-t">
+                <div className="text-center pt-4 border-t">
                   <p className="text-xs text-gray-500">
                     Account created on <span className="font-medium">{formatDate(new Date().toISOString())}</span>
                   </p>
-                </div> */}
+                </div>
               </CardContent>
-            </Card>
+            </Card> */}
           </motion.div>
         </div>
       </div>
