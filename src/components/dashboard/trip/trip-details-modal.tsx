@@ -27,6 +27,7 @@ import type { TripDetailsModalProps } from "../../../types/dashboard/trip_type"
 import type { IntutrackData } from "../../../types/dashboard/trip_type"
 import type { RegistrationDbResponse } from "@/types/live/list_type"
 import { fetchRegistrationFromDb, refreshRegistrationDetails } from "../../../data/live/list"
+import { reverseGeocode } from "../../reversegeocoding"
 
 export function TripDetailsModal({
   open,
@@ -41,6 +42,8 @@ export function TripDetailsModal({
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasLoadedDb, setHasLoadedDb] = useState(false)
+  const [currentLocationAddress, setCurrentLocationAddress] = useState<string>("")
+  const [currentLocationLoading, setCurrentLocationLoading] = useState(false)
 
   // Always show "Stop Details" as the first section when modal opens
   useEffect(() => {
@@ -153,6 +156,35 @@ export function TripDetailsModal({
       }
     }
   }
+
+  // Fetch reverse geocoded address when Trip Details tab is opened and trip is not inactive
+  useEffect(() => {
+    if (
+      open &&
+      selectedTrip &&
+      activeTab === "trip" &&
+      selectedTrip.status?.toLowerCase() !== "inactive" &&
+      Array.isArray(selectedTrip.current_location_coordindates) &&
+      selectedTrip.current_location_coordindates.length === 2
+    ) {
+      setCurrentLocationLoading(true)
+      reverseGeocode(
+        selectedTrip.current_location_coordindates[0],
+        selectedTrip.current_location_coordindates[1]
+      )
+        .then(addr => setCurrentLocationAddress(addr))
+        .catch(() => setCurrentLocationAddress("Error retrieving address"))
+        .finally(() => setCurrentLocationLoading(false))
+    } else if (
+      open &&
+      selectedTrip &&
+      activeTab === "trip" &&
+      selectedTrip.status?.toLowerCase() === "inactive"
+    ) {
+      setCurrentLocationAddress("")
+      setCurrentLocationLoading(false)
+    }
+  }, [open, selectedTrip, activeTab])
 
   // Handle tab change and load registration data if needed
   const handleTabChange = async (tab: "stops" | "trip" | "registration" | "intutrack") => {
@@ -675,7 +707,41 @@ export function TripDetailsModal({
                   <div className="space-y-2 text-sm">
                     <div>
                       <MapPin className="inline h-4 w-4 mr-1 text-blue-500" />
-                      <strong>Current Location:</strong> {selectedTrip.cuurent_location_address || "-"}
+                      <strong>Current Location:</strong>{" "}
+                      {selectedTrip.status?.toLowerCase() === "inactive"
+                        ? ""
+                        : (
+                          <span>
+                            {Array.isArray(selectedTrip.current_location_coordindates) &&
+                            selectedTrip.current_location_coordindates.length === 2 ? (
+                              <>
+                                <span className="ml-2 text-sm">
+                                  {/* Address with tooltip, similar to VehicleDetailsModal */}
+                                  <span className="relative group">
+                                    <span className="truncate max-w-[180px] inline-block align-bottom">
+                                      {currentLocationLoading
+                                        ? "Loading address..."
+                                        : currentLocationAddress
+                                          ? currentLocationAddress
+                                          : ""}
+                                    </span>
+                                    {currentLocationAddress && !currentLocationLoading && (
+                                      <span className="absolute left-0 bottom-full mb-2 px-3 py-2 bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-md shadow-xl border border-slate-700 z-10 min-w-0 w-max max-w-[300px] break-words whitespace-normal opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out transform group-hover:-translate-y-1 translate-y-1">
+                                        <span className="font-medium text-slate-100 leading-snug break-words">
+                                          {currentLocationAddress}
+                                        </span>
+                                        <span className="absolute -bottom-1 left-4 w-2 h-2 bg-slate-900 dark:bg-slate-800 border-r border-b border-slate-700 transform rotate-45"></span>
+                                      </span>
+                                    )}
+                                  </span>
+                                </span>
+                              </>
+                            ) : (
+                              "No location"
+                            )}
+                          </span>
+                        )
+                      }
                     </div>
                     <div>
                       <MapPin className="inline h-4 w-4 mr-1 text-blue-500" />

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Edit, ChevronLeft, ChevronRight, Eye, MoreVertical, ChevronUp, ChevronDown,CheckCircle,XCircle, } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/dialog"
 import type { VendorTableProps } from "../../../types/manage/vendor_type"
 import { formatDate } from "../../../components/formatdate"
+import { useAuth } from "@/context/AuthContext"
+import { fetchRolesByUserId } from "@/data/usermanage/responsibility"
 
 type SortField = "name" | "status" | "createdAt" | "updatedAt"
 type SortDirection = "asc" | "desc"
@@ -31,6 +33,28 @@ export function VendorTable({
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
   const [sortField, setSortField] = useState<SortField>("name")
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
+  const { user } = useAuth()
+  const [vendorsAccess, setVendorsAccess] = useState<number | null>(null)
+
+  // Fetch vendors tab access
+
+  useEffect(() => {
+    const fetchAccess = async () => {
+      if (user && user.id) {
+        try {
+          const roles = await fetchRolesByUserId(user.id)
+          if (roles && roles.length > 0) {
+            const tabsAccess = roles[0].tabs_access
+            const vendorsTab = tabsAccess.find((tab: any) => tab.hasOwnProperty("vendors"))
+            setVendorsAccess(vendorsTab ? vendorsTab.vendors : null)
+          }
+        } catch {
+          setVendorsAccess(null)
+        }
+      }
+    }
+    fetchAccess()
+  }, [user])
 
   // const handleDeleteClick = (id: number) => {
   //   setDeleteConfirmId(id)
@@ -104,9 +128,12 @@ export function VendorTable({
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-900/50 sticky top-0 z-10">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 lg:pr-0">Actions</th>
+                {/* Conditionally render Actions header */}
+                {vendorsAccess !== 1 && (
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 lg:pr-0">Actions</th>
+                )}
                 <th
-                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 lg:pl-0 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
                   onClick={() => handleSort("name")}
                 >
                   <div className="flex items-center">
@@ -176,30 +203,33 @@ export function VendorTable({
                       transition={{ duration: 0.3, delay: index * 0.05 }}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700/50"
                     >
-                      <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium relative lg:pr-0">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreVertical className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-                              <span className="sr-only">Open menu</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent className="dark:bg-gray-800 dark:border-gray-700">
-                            <DropdownMenuItem onClick={() => onEdit(vendor)} className="dark:text-gray-300 dark:hover:bg-gray-700">
-                              <Edit className="mr-2 h-4 w-4 text-gray-400 dark:text-gray-400" />
-                              Edit
-                            </DropdownMenuItem>
-                            {/* <DropdownMenuItem
-                              onClick={() => handleDeleteClick(vendor.id)}
-                              className="text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400 dark:hover:bg-gray-700"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4 text-red-400" />
-                              Delete
-                            </DropdownMenuItem> */}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap lg:pl-0">
+                      {/* Conditionally render Actions cell */}
+                      {vendorsAccess !== 1 && (
+                        <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium relative lg:pr-0">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                                <span className="sr-only">Open menu</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="dark:bg-gray-800 dark:border-gray-700">
+                              <DropdownMenuItem onClick={() => onEdit(vendor)} className="dark:text-gray-300 dark:hover:bg-gray-700">
+                                <Edit className="mr-2 h-4 w-4 text-gray-400 dark:text-gray-400" />
+                                Edit
+                              </DropdownMenuItem>
+                              {/* <DropdownMenuItem
+                                onClick={() => handleDeleteClick(vendor.id)}
+                                className="text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400 dark:hover:bg-gray-700"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4 text-red-400" />
+                                Delete
+                              </DropdownMenuItem> */}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+                      )}
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{vendor.name}</div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">ID: {vendor.id}</div>

@@ -93,16 +93,17 @@ export function TripMap({
     ).addTo(mapInstanceRef.current)
   }, [mapType, mapLoaded])
 
-  // Helper for trip status color
+  // Helper for trip status color (returns Tailwind classes)
   const getTripStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case "at_stop_pickup":
       case "at_stop_delivery":
       case "in_transit":
-        return "bg-green-500"
+        return "bg-green-200 text-green-800 dark:bg-green-900/30 dark:text-green-300"
       case "inactive":
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300"
       default:
-        return "bg-gray-400"
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300"
     }
   }
 
@@ -113,17 +114,60 @@ export function TripMap({
 
   // Helper for vehicle status color
   const getVehicleStatusColor = (status: string) => {
-    switch ((status || "").toLowerCase()) {
+    switch (status.toLowerCase()) {
       case "active":
-        return "bg-green-500"
+        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
       case "no update":
-        return "bg-yellow-500"
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
       case "no data":
-        return "bg-red-500"
+        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
       default:
-        return "bg-gray-400"
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300"
     }
   }
+
+  // NEW: Helper for trip status inline color (for popup)
+  const getTripStatusColorStyle = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "at_stop_pickup":
+      case "at_stop_delivery":
+      case "in_transit":
+        return "color:#166534; background-color:#bbf7d0;"; // green
+      case "inactive":
+        return "color:#374151; background-color:#f3f4f6;"; // gray
+      default:
+        return "color:#374151; background-color:#f3f4f6;";
+    }
+  }
+
+  // NEW: Helper for vehicle status inline color (for popup)
+  const getVehicleStatusColorStyle = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "active":
+        return "color:#166534; background-color:#dcfce7;"; // green
+      case "no update":
+        return "color:#854d0e; background-color:#fef9c3;"; // yellow
+      case "no data":
+        return "color:#991b1b; background-color:#fee2e2;"; // red
+      default:
+        return "color:#374151; background-color:#f3f4f6;";
+    }
+  }
+
+  const getStatusText = (status: string) => {
+  switch (status.toLowerCase()) {
+    case "at_stop_pickup":
+      return "At Pickup Stop"
+    case "at_stop_delivery":
+      return "At Delivery Stop"
+    case "in_transit":
+      return "In Transit"
+    case "inactive":
+      return "Inactive"
+    default:
+      return status
+  }
+}
 
   // Update markers based on map mode
   useEffect(() => {
@@ -201,12 +245,18 @@ export function TripMap({
             <div class="popup-content">
               <h3>Shipment ID: ${trip.id}</h3>
               <p><strong>Vehicle Number:</strong> ${trip.Vehicle_number}</p>
+              <p><strong>Vehicle Status:</strong> <span style="${getVehicleStatusColorStyle(trip.Vehicle_status)}padding:2px 6px;border-radius:6px;font-weight:bold;">${trip.Vehicle_status}</span></p>
               <p><strong>Driver:</strong> ${trip.driverName}</p>
               <p><strong>Driver Mobile:</strong> ${trip.driverMobile || "-"}</p>
-              <p><strong>Status:</strong> <span style="color:${getTripStatusColor(trip.status).replace("bg-", "").replace("-500", "")};font-weight:bold">${trip.status}</span></p>
-              <p><strong>Vehicle Status:</strong> <span style="color:${getVehicleStatusColor(trip.Vehicle_status).replace("bg-", "").replace("-500", "")};font-weight:bold">${trip.Vehicle_status}</span></p>
-              <p><strong>Location:</strong> ${trip.cuurent_location_address}</p>
+              <p><strong>Status:</strong> <span style="${getTripStatusColorStyle(trip.status)}padding:2px 6px;border-radius:6px;font-weight:bold;">${getStatusText(trip.status)}</span></p>
+              
+              <p><strong>Location:</strong> ${
+                Array.isArray(trip.current_location_coordindates) && trip.current_location_coordindates.length === 2
+                  ? `${trip.current_location_coordindates[0].toFixed(6)}, ${trip.current_location_coordindates[1].toFixed(6)}`
+                  : "No location"
+              }</p>
               <p><strong>Last Update:</strong> ${new Date(trip.last_gps_ping).toLocaleString()}</p>
+              <p><strong>Status Duration:</strong> ${trip.status_duration}</p>
             </div>
           `)
 
@@ -381,11 +431,16 @@ export function TripMap({
           <div class="popup-content">
             <h3>Shipment ID: ${trip.id}</h3>
             <p><strong>Vehicle Number:</strong> ${trip.Vehicle_number}</p>
+             <p><strong>Vehicle Status:</strong> <span style="${getVehicleStatusColorStyle(trip.Vehicle_status)}padding:2px 6px;border-radius:6px;font-weight:bold;">${trip.Vehicle_status}</span></p>
             <p><strong>Driver:</strong> ${trip.driverName}</p>
             <p><strong>Driver Mobile:</strong> ${trip.driverMobile || "-"}</p>
-            <p><strong>Status:</strong> <span style="color:${getTripStatusColor(trip.status).replace("bg-", "").replace("-500", "")};font-weight:bold">${trip.status}</span></p>
-            <p><strong>Vehicle Status:</strong> <span style="color:${getVehicleStatusColor(trip.Vehicle_status).replace("bg-", "").replace("-500", "")};font-weight:bold">${trip.Vehicle_status}</span></p>
-            <p><strong>Location:</strong> ${trip.cuurent_location_address}</p>
+            <p><strong>Status:</strong> <span style="${getTripStatusColorStyle(trip.status)}padding:2px 6px;border-radius:6px;font-weight:bold;">${getStatusText(trip.status)}</span></p>
+           
+            <p><strong>Location:</strong> ${
+              Array.isArray(trip.current_location_coordindates) && trip.current_location_coordindates.length === 2
+                ? `${trip.current_location_coordindates[0].toFixed(6)}, ${trip.current_location_coordindates[1].toFixed(6)}`
+                : "No location"
+            }</p>
           </div>
         `)
 
@@ -580,19 +635,21 @@ export function TripMap({
                         <div className="mt-1 flex items-center gap-2">
                           {/* Trip Status */}
                           <span
-                            className={`text-xs px-1.5 py-0.5 rounded-full ${getTripStatusColor(trip.status)} bg-opacity-20`}
+                            className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${getTripStatusColor(trip.status)} bg-opacity-20`}
                           >
-                            {trip.status}
+                            {getStatusText(trip.status)}
                           </span>
                           {/* Vehicle Status */}
                           <span
-                            className={`text-xs px-1.5 py-0.5 rounded-full ${getVehicleStatusColor(trip.Vehicle_status)} bg-opacity-20`}
+                            className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${getVehicleStatusColor(trip.Vehicle_status)} bg-opacity-20`}
                           >
                             {trip.Vehicle_status}
                           </span>
                         </div>
                         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
-                          {trip.cuurent_location_address}
+                          {Array.isArray(trip.current_location_coordindates) && trip.current_location_coordindates.length === 2
+                            ? `${trip.current_location_coordindates[0].toFixed(6)}, ${trip.current_location_coordindates[1].toFixed(6)}`
+                            : "No location"}
                         </p>
                       </div>
                     </div>

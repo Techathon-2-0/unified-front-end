@@ -9,6 +9,7 @@ import { fetchGroupsbyuserId, fetchCustomerGroupsbyuser, getAlarmTypes } from ".
 import { useToast } from "@/hooks/use-toast"
 import { DatePickerWithRange } from "./date-picker-with-range"
 import { useAuth } from "@/context/AuthContext"
+import { fetchRolesByUserId } from "@/data/usermanage/responsibility"
 
 interface ReportFilters {
   reportType: ReportType
@@ -46,6 +47,7 @@ export function ReportDrawer({
   const [selectAllAlarmTypes, setSelectAllAlarmTypes] = useState(false)
   const alarmTypeOptions = getAlarmTypes()
   const { user } = useAuth()
+  const [reportAccess, setReportAccess] = useState<string[]>([])
 
   // Load groups on component mount
   useEffect(() => {
@@ -53,6 +55,24 @@ export function ReportDrawer({
       loadGroups()
     }
   }, [open])
+
+  // Fetch report access for current user
+  useEffect(() => {
+    const fetchAccess = async () => {
+      if (user && user.id) {
+        try {
+          const roles = await fetchRolesByUserId(user.id)
+          if (roles && roles.length > 0) {
+            const access = roles[0].report_access || []
+            setReportAccess(access)
+          }
+        } catch {
+          setReportAccess([])
+        }
+      }
+    }
+    fetchAccess()
+  }, [user])
 
   // Handle select all groups
   useEffect(() => {
@@ -412,21 +432,32 @@ export function ReportDrawer({
                       <SelectContent
                         className="dark:bg-gray-800 dark:border-gray-700 z-[10000]"
                       >
-                        <SelectItem value="dashboard" className="dark:text-gray-300">
-                          Dashboard Report
-                        </SelectItem>
-                        <SelectItem value="all_positions" className="dark:text-gray-300">
-                          All Position Report
-                        </SelectItem>
-                        <SelectItem value="alarm" className="dark:text-gray-300">
-                          Alarm Reports
-                        </SelectItem>
-                        <SelectItem value="trip_gps_status" className="dark:text-gray-300">
-                          Trip GPS Status Report
-                        </SelectItem>
-                        <SelectItem value="trip_summary" className="dark:text-gray-300">
-                          Trip Summary Report
-                        </SelectItem>
+                        {/* Only show report types if present in reportAccess */}
+                        {reportAccess.includes("Dashboard") && (
+                          <SelectItem value="dashboard" className="dark:text-gray-300">
+                            Dashboard Report
+                          </SelectItem>
+                        )}
+                        {reportAccess.includes("Stops By Day report") && (
+                          <SelectItem value="all_positions" className="dark:text-gray-300">
+                            All Position Report
+                          </SelectItem>
+                        )}
+                        {reportAccess.includes("Alarm Log") && (
+                          <SelectItem value="alarm" className="dark:text-gray-300">
+                            Alarm Reports
+                          </SelectItem>
+                        )}
+                        {reportAccess.includes("Communication status report") && (
+                          <SelectItem value="trip_gps_status" className="dark:text-gray-300">
+                            Trip GPS Status Report
+                          </SelectItem>
+                        )}
+                        {reportAccess.includes("Trip Summary Report") && (
+                          <SelectItem value="trip_summary" className="dark:text-gray-300">
+                            Trip Summary Report
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>

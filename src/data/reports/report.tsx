@@ -135,7 +135,15 @@ export const generateAllPositionsReport = async (filters: ReportFilters): Promis
       },
     )
 
-    return response.data.data || []
+    // Reverse trailPoints for each vehicle so latest is last
+    const data = (response.data.data || []).map((vehicle: AllPositionsReportData) => ({
+      ...vehicle,
+      trailPoints: Array.isArray(vehicle.trailPoints)
+        ? [...vehicle.trailPoints].reverse()
+        : vehicle.trailPoints,
+    }));
+
+    return data
   } catch (error) {
     console.error("Error generating all positions report:", error)
     throw error
@@ -146,7 +154,7 @@ export const generateAllPositionsReport = async (filters: ReportFilters): Promis
 export const generateAlarmReport = async (filters: ReportFilters): Promise<AlarmReportData[]> => {
   try {
     const response = await axios.post(
-      `${import.meta.env.VITE_BACKEND_URL}/alarm-report`,
+      `${import.meta.env.VITE_BACKEND_URL}/alarmreport`,
       {
         vehicleGroups: filters.vehicleGroups,
         customerGroups: filters.customerGroups,
@@ -252,7 +260,7 @@ export const generateTripSummaryReport = async (filters: ReportFilters): Promise
       },
     )
 
-    console.log("Trip Summary Report Response:", response.data) 
+    console.log("Trip Summary Report Response:", response.data)
 
     return response.data.data?.trips || []
   } catch (error) {
@@ -329,36 +337,33 @@ export const exportReportAsCSV = (
   } else if (reportType === "all_positions") {
     const allPositionsData = data as AllPositionsReportData[]
 
-    // Create CSV content with vehicle sections
-    let csvContent = ""
+    // Create CSV headers with Vehicle Number as first column
+    const headers = [
+      "S.No",
+      "Vehicle Number",
+      "Vendor",
+      "Device ID",
+      "GPS Time",
+      "GPRS Time",
+      "Latitude",
+      "Longitude",
+      "Speed (km/h)",
+      "Address",
+      "Power",
+      "Battery",
+      "Ignition Status",
+      "Heading",
+    ]
 
-    allPositionsData.forEach((vehicle, vehicleIndex) => {
-      // Add vehicle header
-      if (vehicleIndex > 0) csvContent += "\n\n"
-      csvContent += `Vehicle Number: ${vehicle.vehicleNumber}\n`
+    let csvContent = headers.join(",") + "\n"
+    let serialNumber = 1
 
-      // Add trail points headers
-      const headers = [
-        "S.No",
-        "Vendor",
-        "Device ID",
-        "GPS Time",
-        "GPRS Time",
-        "Latitude",
-        "Longitude",
-        "Speed (km/h)",
-        "Address",
-        "Power",
-        "Battery",
-        "Ignition Status",
-        "Heading",
-      ]
-      csvContent += headers.join(",") + "\n"
-
-      // Add trail points data
-      vehicle.trailPoints.forEach((point, index) => {
+    // Flatten all positions from all vehicles into single list
+    allPositionsData.forEach((vehicle) => {
+      vehicle.trailPoints.forEach((point) => {
         const row = [
-          index + 1,
+          serialNumber++,
+          `"${vehicle.vehicleNumber}"`,
           `"${point.vendor}"`,
           `"${point.deviceId}"`,
           `"${point.gpsTime || ""}"`,

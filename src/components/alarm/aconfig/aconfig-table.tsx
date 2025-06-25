@@ -27,7 +27,10 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { formatDate } from "../../formatdate"
+import { fetchRolesByUserId } from "../../../data/usermanage/responsibility"
+import { useAuth } from "@/context/AuthContext"
 
+// Add alarmTabAccess to props
 export const AlarmTable = ({
   alarms,
   onEdit,
@@ -39,7 +42,10 @@ export const AlarmTable = ({
   totalCount,
   onSort,
   onViewAssignedGroups,
+  // Add new prop
 }: AlarmTableProps) => {
+  const { user } = useAuth()
+  const [alarmTabAccess, setAlarmTabAccess] = useState<number | null>(null)
   const [actionsOpen, setActionsOpen] = useState<string | null>(null)
   const [sortField, setSortField] = useState<keyof Alarm | null>(null)
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
@@ -62,6 +68,24 @@ export const AlarmTable = ({
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [actionsOpen])
+
+  useEffect(() => {
+    const fetchAccess = async () => {
+      if (user && user.id) {
+        try {
+          const roles = await fetchRolesByUserId(user.id)
+          if (roles && roles.length > 0) {
+            const tabsAccess = roles[0].tabs_access
+            const alarmTab = tabsAccess.find((tab: any) => tab.hasOwnProperty("alarm"))
+            setAlarmTabAccess(alarmTab ? alarmTab.alarm : null)
+          }
+        } catch {
+          setAlarmTabAccess(null)
+        }
+      }
+    }
+    fetchAccess()
+  }, [user])
 
   const handleSortClick = (field: keyof Alarm) => {
     // Only allow sorting on created/updated dates
@@ -160,12 +184,15 @@ export const AlarmTable = ({
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-900 sticky top-0 z-10 h-15">
               <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-center text-sm whitespace-nowrap font-medium text-gray-500 dark:text-gray-400"
-                >
-                  Actions
-                </th>
+                {/* Conditionally render Actions column */}
+                {alarmTabAccess !== 1 && (
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-center text-sm whitespace-nowrap font-medium text-gray-500 dark:text-gray-400"
+                  >
+                    Actions
+                  </th>
+                )}
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-sm whitespace-nowrap font-medium text-gray-500 dark:text-gray-400"
@@ -247,57 +274,60 @@ export const AlarmTable = ({
                       transition={{ duration: 0.3, delay: index * 0.05 }}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700"
                     >
-                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium relative">
-                        <button
-                          ref={(el) => { actionRefs.current[alarm.id] = el; }}
-                          onClick={(e) => toggleActions(alarm.id, e)}
-                          className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 focus:outline-none"
-                        >
-                          <MoreVertical className="h-5 w-5" />
-                        </button>
-                        <AnimatePresence>
-                          {actionsOpen === alarm.id && (
-                            <motion.div
-                              initial={{ opacity: 0, scale: 0.95 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0.95 }}
-                              transition={{ duration: 0.1 }}
-                              className="fixed bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 border border-gray-200 dark:border-gray-700 w-30"
-                            // style={{
-                            //   // Position based on calculated optimal position
-                            //   top: actionPositions[alarm.id]?.top
-                            //     ? actionRefs.current[alarm.id]?.getBoundingClientRect().top! - 80
-                            //     : actionRefs.current[alarm.id]?.getBoundingClientRect().bottom! + 5,
-                            //   left: actionPositions[alarm.id]?.right
-                            //     ? actionRefs.current[alarm.id]?.getBoundingClientRect().left! - 150
-                            //     : window.innerWidth < 768
-                            //       ? Math.max(10, actionRefs.current[alarm.id]?.getBoundingClientRect().left! - 160)
-                            //       : actionRefs.current[alarm.id]?.getBoundingClientRect().left! - 10,
-                            // }}
-                            >
-                              <div className="py-1">
-                                <button
-                                  onClick={() => {
-                                    onEdit(alarm)
-                                    setActionsOpen(null)
-                                  }}
-                                  className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
-                                >
-                                  <Edit className="mr-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
-                                  Edit
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteClick(alarm.id)}
-                                  className="flex items-center px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
-                                >
-                                  <Trash2 className="mr-3 h-4 w-4 text-red-400 dark:text-red-500" />
-                                  Delete
-                                </button>
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </td>
+                      {/* Conditionally render Actions cell */}
+                      {alarmTabAccess !== 1 && (
+                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium relative">
+                          <button
+                            ref={(el) => { actionRefs.current[alarm.id] = el; }}
+                            onClick={(e) => toggleActions(alarm.id, e)}
+                            className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400 focus:outline-none"
+                          >
+                            <MoreVertical className="h-5 w-5" />
+                          </button>
+                          <AnimatePresence>
+                            {actionsOpen === alarm.id && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                transition={{ duration: 0.1 }}
+                                className="fixed bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 border border-gray-200 dark:border-gray-700 w-30"
+                              // style={{
+                              //   // Position based on calculated optimal position
+                              //   top: actionPositions[alarm.id]?.top
+                              //     ? actionRefs.current[alarm.id]?.getBoundingClientRect().top! - 80
+                              //     : actionRefs.current[alarm.id]?.getBoundingClientRect().bottom! + 5,
+                              //   left: actionPositions[alarm.id]?.right
+                              //     ? actionRefs.current[alarm.id]?.getBoundingClientRect().left! - 150
+                              //     : window.innerWidth < 768
+                              //       ? Math.max(10, actionRefs.current[alarm.id]?.getBoundingClientRect().left! - 160)
+                              //       : actionRefs.current[alarm.id]?.getBoundingClientRect().left! - 10,
+                              // }}
+                              >
+                                <div className="py-1">
+                                  <button
+                                    onClick={() => {
+                                      onEdit(alarm)
+                                      setActionsOpen(null)
+                                    }}
+                                    className="flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
+                                  >
+                                    <Edit className="mr-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteClick(alarm.id)}
+                                    className="flex items-center px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
+                                  >
+                                    <Trash2 className="mr-3 h-4 w-4 text-red-400 dark:text-red-500" />
+                                    Delete
+                                  </button>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </td>
+                      )}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <AlarmTypeIcon type={alarm.type} className="mr-2" />

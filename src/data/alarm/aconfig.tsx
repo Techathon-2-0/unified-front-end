@@ -109,7 +109,7 @@ export const fetchAlarms = async (): Promise<Alarm[]> => {
 }
 
 // Helper function to get alarm type name from ID (1-based mapping)
-const getAlarmTypeFromId = (id: number): string => {
+export const getAlarmTypeFromId = (id: number): string => {
   const types = [
     "Stoppage", // 1
     "Overspeeding", // 2

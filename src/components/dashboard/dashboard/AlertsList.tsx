@@ -3,10 +3,10 @@ import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { AlertCircle, AlertTriangle, Info, Clock, ExternalLink, TrendingUp, Loader2 } from "lucide-react"
 import { fetchAlertsByUser } from "../../../data/alarm/alert"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { Link } from "react-router-dom"
 import { useAuth } from "@/context/AuthContext"
+import { getAlarmTypeFromId } from "../../../data/alarm/aconfig"
 
 interface AlertType {
   id: number
@@ -160,58 +160,7 @@ const AlertsList: React.FC<AlertsListProps> = ({ userId }) => {
           // Map the new API response to the Alert type used in this component
           const mappedAlerts: Alert[] = response.data.map((item: any) => ({
             id: item.alertId,
-            alert_type: {
-              id: item.alarmId,
-              alarm_type_id: item.alarmId,
-              alarm_category: "", // Not provided in new API, fallback or fetch if needed
-              alarm_value: 0,
-              rest_duration: null,
-              geofence_status: null,
-              alarm_generation: false,
-              active_start_time_range: "",
-              active_end_time_range: "",
-              active_trip: false,
-              alarm_status: false,
-              description: "", // Not provided
-            },
-            status: item.status,
-            status_text: item.status === 1 ? "Active" : item.status === 2 ? "Manually Closed" : "Inactive",
-            created_at: item.createdAt,
-            updated_at: item.createdAt,
-            duration: "", // Not provided
-            shipments: [],
-            entity: {
-              id: 0,
-              vehicleNumber: "", // Not provided
-              type: "", // Not provided
-            },
-            notification_sent: {
-              emails: [],
-              phone_numbers: [],
-            },
-            // Add severity_type for easier access
-            severity_type: item.severity_type,
-          }))
-          setAlerts(mappedAlerts)
-          setTotalAlerts(mappedAlerts.length)
-        } else if (response && response.success && response.data && Array.isArray(response.data)) {
-          // Defensive: handle if response.data is already an array
-          const mappedAlerts: Alert[] = response.data.map((item: any) => ({
-            id: item.alertId,
-            alert_type: {
-              id: item.alarmId,
-              alarm_type_id: item.alarmId,
-              alarm_category: "",
-              alarm_value: 0,
-              rest_duration: null,
-              geofence_status: null,
-              alarm_generation: false,
-              active_start_time_range: "",
-              active_end_time_range: "",
-              active_trip: false,
-              alarm_status: false,
-              description: "",
-            },
+            alert_type: item.alarmId, // Will map to type below
             status: item.status,
             status_text: item.status === 1 ? "Active" : item.status === 2 ? "Manually Closed" : "Inactive",
             created_at: item.createdAt,
@@ -219,7 +168,31 @@ const AlertsList: React.FC<AlertsListProps> = ({ userId }) => {
             duration: "",
             shipments: [],
             entity: {
-              id: 0,
+              id: item.group_entity?.entity_id || 0,
+              vehicleNumber: "", // Not shown
+              type: "", // Not shown
+            },
+            notification_sent: {
+              emails: [],
+              phone_numbers: [],
+            },
+            severity_type: item.severity_type || "", // Use alarm_category if available
+          }))
+          setAlerts(mappedAlerts)
+          setTotalAlerts(typeof response.count === "number" ? response.count : mappedAlerts.length)
+        } else if (response && response.success && response.data && Array.isArray(response.data)) {
+          // Defensive: handle if response.data is already an array
+          const mappedAlerts: Alert[] = response.data.map((item: any) => ({
+            id: item.alertId,
+            alert_type: item.alarmId,
+            status: item.status,
+            status_text: item.status === 1 ? "Active" : item.status === 2 ? "Manually Closed" : "Inactive",
+            created_at: item.createdAt,
+            updated_at: item.createdAt,
+            duration: "",
+            shipments: [],
+            entity: {
+              id: item.group_entity?.entity_id || 0,
               vehicleNumber: "",
               type: "",
             },
@@ -227,10 +200,10 @@ const AlertsList: React.FC<AlertsListProps> = ({ userId }) => {
               emails: [],
               phone_numbers: [],
             },
-            severity_type: item.severity_type,
+            severity_type: item.severity_type || "",
           }))
           setAlerts(mappedAlerts)
-          setTotalAlerts(mappedAlerts.length)
+          setTotalAlerts(typeof response.count === "number" ? response.count : mappedAlerts.length)
         } else if (response && response.success && response.data && response.data.alerts) {
           setAlerts(response.data.alerts || [])
           setTotalAlerts(response.data.pagination?.total || 0)
@@ -355,7 +328,7 @@ const AlertsList: React.FC<AlertsListProps> = ({ userId }) => {
                 {criticalCount} Critical
               </Badge>
             )}
-            <Link to="/alarm/config">
+            <Link to="/reports/report">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -370,90 +343,65 @@ const AlertsList: React.FC<AlertsListProps> = ({ userId }) => {
       </div>
 
       {/* Scrollable Content */}
-      <ScrollArea className="flex-1 p-2">
-        <motion.div variants={container} initial="hidden" animate="show" className="space-y-2">
-          {recentAlarms.map((alarm) => {
-            // Use severity_type from API if present, fallback to old logic
-            const severityType = (alarm as any).severity_type
-              ? (alarm as any).severity_type
-              : alarm.status === 1
-                ? "Critical"
-                : alarm.status === 2
-                  ? "Warning"
-                  : "Info"
-            return (
-              <motion.div
-                key={alarm.id}
-                variants={item}
-                whileHover={{
-                  scale: 1.02,
-                  boxShadow: "0 8px 25px rgba(0, 0, 0, 0.1)",
-                  transition: { duration: 0.2 },
-                }}
-                className="p-4 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 transition-all duration-200 bg-gradient-to-r from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-800/80 cursor-pointer"
-              >
-                <div className="flex items-start space-x-4">
-                  <AlertIcon severityType={severityType} type={alarm.alert_type.alarm_category} />
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
-                          {alarm.alert_type.alarm_category} - {alarm.entity.vehicleNumber}
-                        </h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                          {alarm.alert_type.description}
-                        </p>
-                        {alarm.shipments.length > 0 && (
-                          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                            Route: {alarm.shipments[0].route_name} • Location: {alarm.shipments[0].current_location}
+      <div className="flex-1 overflow-hidden">
+        {/* Make the alerts list fill the available height and scroll vertically */}
+        <div className="h-full overflow-y-auto">
+          <motion.div variants={container} initial="hidden" animate="show" className="space-y-2 p-2">
+            {alerts.map((alarm) => {
+              // Map alarm name by id
+              const alarmName = typeof alarm.alert_type === "number"
+                ? getAlarmTypeFromId(alarm.alert_type)
+                : alarm.alert_type?.alarm_category || "";
+              const severityType = alarm.severity_type || "";
+              const vehicleNumber = alarm.entity.vehicleNumber || "-";
+              return (
+                <motion.div
+                  key={alarm.id}
+                  variants={item}
+                  whileHover={{
+                    scale: 1.02,
+                    boxShadow: "0 8px 25px rgba(0, 0, 0, 0.1)",
+                    transition: { duration: 0.2 },
+                  }}
+                  className="p-4 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 transition-all duration-200 bg-gradient-to-r from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-800/80 cursor-pointer"
+                >
+                  <div className="flex items-start space-x-4">
+                    <AlertIcon severityType={severityType} type={alarmName} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
+                            {alarmName}
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            Category: {severityType}
                           </p>
-                        )}
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            Vehicle: {vehicleNumber}
+                          </p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            Status: {alarm.status_text}
+                          </p>
+                        </div>
+                        <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                          <Clock size={12} className="mr-1" />
+                          {getTimeAgo(alarm.created_at)}
+                        </div>
                       </div>
-                      <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                        <Clock size={12} className="mr-1" />
-                        {getTimeAgo(alarm.created_at)}
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center mt-3 gap-2">
-                      <Badge
-                        variant="outline"
-                        className={`text-xs ${
-                          severityType === "Critical"
-                            ? "bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800/50"
-                            : severityType === "Warning"
-                              ? "bg-yellow-50 dark:bg-yellow-950/50 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800/50"
-                              : "bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800/50"
-                        }`}
-                      >
-                        {alarm.status_text}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs bg-gray-50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600/50">
-                        {alarm.alert_type.alarm_category}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800/50">
-                        {alarm.entity.type}
-                      </Badge>
-                      {alarm.duration && (
-                        <Badge variant="outline" className="text-xs bg-green-50 dark:bg-green-950/50 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800/50">
-                          {alarm.duration}
-                        </Badge>
-                      )}
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            )
-          })}
-        </motion.div>
-      </ScrollArea>
+                </motion.div>
+              )
+            })}
+          </motion.div>
+        </div>
+      </div>
 
       {/* Enhanced Footer */}
       <div className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/80 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-600 dark:text-gray-400">
-            Showing {recentAlarms.length} of {totalAlerts} alerts
+            Showing {alerts.length} of {totalAlerts} alerts
           </span>
           <Link to="/alarm/config">
             <motion.button

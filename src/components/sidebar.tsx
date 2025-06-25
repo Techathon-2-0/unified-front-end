@@ -20,6 +20,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../componen
 import { useIsMobile } from "@/hooks/use-mobile"
 import Logo from "../assets/Logo.png"
 import { useAuth } from "../context/AuthContext"
+import { fetchRolesByUserId } from "@/data/usermanage/responsibility"
 
 // Define navigation items structure with nested items for dropdowns
 const navItems = [
@@ -103,13 +104,47 @@ interface LogisticsSidebarProps {
   closeSidebar: () => void
 }
 
+interface AuthUser {
+  id: string
+  username: string
+  name: string
+  roles: string
+  // Add other properties as needed
+}
+
 const LogisticsSidebar: React.FC<LogisticsSidebarProps> = ({ isOpen, closeSidebar }) => {
   const [isExpanded, setIsExpanded] = useState(false)
   const [openMenus, setOpenMenus] = useState<string[]>([])
   const isMobile = useIsMobile()
   const location = useLocation()
 
-  const { user } = useAuth()
+  const { user } = useAuth() as { user: AuthUser | null }
+  // New: Store allowed tabs and reports for this user
+  const [allowedTabs, setAllowedTabs] = useState<string[]>([])
+  const [accessChecked, setAccessChecked] = useState(false)
+
+  useEffect(() => {
+      const fetchAccess = async () => {
+        if (user && user.id) {
+          try {
+            const roles = await fetchRolesByUserId(Number(user.id));
+            if (roles && roles.length > 0) {
+              // Tabs
+              // Tabs
+              const tabs = roles[0].tabs_access.map((tab: any) => Object.keys(tab)[0]);
+              setAllowedTabs(tabs);
+            }
+          } catch {
+            setAllowedTabs([]);
+          } finally {
+            setAccessChecked(true);
+          }
+          setAccessChecked(true);
+        }
+      };
+      fetchAccess();
+    }, [user]);
+
   // Handle expansion logic differently for mobile and desktop
   useEffect(() => {
     if (isMobile) {
@@ -155,10 +190,60 @@ const LogisticsSidebar: React.FC<LogisticsSidebarProps> = ({ isOpen, closeSideba
     return item.children.some((child: any) => isActive(child.path))
   }
 
-
-  if (!user) {
+  if (!user || !accessChecked) {
     return null
   }
+
+  // Filter navItems based on allowedTabs and allowedReports
+  const filteredNavItems = navItems
+    .map((item) => {
+      // Only show Reports if "report" tab is present
+      if (item.label === "Reports") {
+        if (!allowedTabs.includes("report")) return null
+        return item
+      }
+      // Handle User Management children
+      if (item.label === "User Management" && item.hasChildren && item.children) {
+        const filteredChildren = item.children.filter((child) => {
+          if (child.label === "Responsibility") return allowedTabs.includes("user_reponsibility")
+          if (child.label === "User") return allowedTabs.includes("user_access")
+          return true
+        })
+        if (filteredChildren.length === 0) return null
+        return { ...item, children: filteredChildren }
+      }
+      // Handle Geofence children
+      if (item.label === "Geofence" && item.hasChildren && item.children) {
+        const filteredChildren = item.children.filter((child) => {
+          if (child.label === "Config") return allowedTabs.includes("geofence_config")
+          if (child.label === "Group") return allowedTabs.includes("geofence_group")
+          if (child.label === "Stats") return allowedTabs.includes("geofence_stats")
+          return true
+        })
+        if (filteredChildren.length === 0) return null
+        return { ...item, children: filteredChildren }
+      }
+      // Handle Manage children
+      if (item.label === "Manage" && item.hasChildren && item.children) {
+        const filteredChildren = item.children.filter((child) => {
+          if (child.label === "Vehicle Master") return allowedTabs.includes("entities")
+          if (child.label === "Vehicle Groups") return allowedTabs.includes("group")
+          if (child.label === "Vendors") return allowedTabs.includes("vendors")
+          if (child.label === "Customer Groups") return allowedTabs.includes("customer")
+          return true
+        })
+        if (filteredChildren.length === 0) return null
+        return { ...item, children: filteredChildren }
+      }
+      // Handle single tab items
+      if (item.label === "Dashboard") return allowedTabs.includes("dashboard") ? item : null
+      if (item.label === "Trip Dashboard") return allowedTabs.includes("trip_dashboard") ? item : null
+      if (item.label === "All Vehicles") return allowedTabs.includes("list_map") ? item : null
+      if (item.label === "Trail") return allowedTabs.includes("trail") ? item : null
+      if (item.label === "Alerts") return allowedTabs.includes("alarm") ? item : null
+      return item
+    })
+    .filter(Boolean)
 
   return (
     <div
@@ -228,7 +313,8 @@ const LogisticsSidebar: React.FC<LogisticsSidebarProps> = ({ isOpen, closeSideba
 
       <div className="flex flex-col flex-1 py-2 overflow-y-auto overflow-x-hidden hide-scrollbar"
       style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        {navItems.map((item, index) => {
+        {filteredNavItems.map((item, index) => {
+          if (!item) return null;
           const isItemActive = isActive(item.path) || hasActiveChild(item)
 
           return (

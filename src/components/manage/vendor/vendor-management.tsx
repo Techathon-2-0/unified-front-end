@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import type { Vendor } from "../../../types/manage/vendor_type"
 import { fetchVendors, createVendor, updateVendor, deleteVendor, searchVendors } from "../../../data/manage/vendor"
+import { fetchRolesByUserId } from "@/data/usermanage/responsibility"
+import { useAuth } from "@/context/AuthContext"
 
 export function VendorManagementPage() {
   const [vendors, setVendors] = useState<Vendor[]>([])
@@ -20,6 +22,8 @@ export function VendorManagementPage() {
   const itemsPerPage = 5
 
   const { showSuccessToast, showErrorToast, Toaster } = useToast({ position: "top-right" })
+  const { user } = useAuth()
+  const [vendorsAccess, setVendorsAccess] = useState<number | null>(null)
 
   // Load vendors on component mount
   useEffect(() => {
@@ -129,6 +133,24 @@ export function VendorManagementPage() {
     setCurrentPage(page)
   }
 
+  useEffect(() => {
+    const fetchAccess = async () => {
+      if (user && user.id) {
+        try {
+          const roles = await fetchRolesByUserId(user.id)
+          if (roles && roles.length > 0) {
+            const tabsAccess = roles[0].tabs_access
+            const vendorsTab = tabsAccess.find((tab: any) => tab.hasOwnProperty("vendors"))
+            setVendorsAccess(vendorsTab ? vendorsTab.vendors : null)
+          }
+        } catch {
+          setVendorsAccess(null)
+        }
+      }
+    }
+    fetchAccess()
+  }, [user])
+
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-gray-900">
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -150,15 +172,18 @@ export function VendorManagementPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </motion.div>
-              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
-                <Button
-                  onClick={handleCreate}
-                  className="bg-black hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 text-white border-0 rounded-md w-full sm:w-auto"
-                >
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Create New Vendor
-                </Button>
-              </motion.div>
+              {/* Hide Create New Vendor button if vendorsAccess === 1 */}
+              {vendorsAccess !== 1 && (
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
+                  <Button
+                    onClick={handleCreate}
+                    className="bg-black hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 text-white border-0 rounded-md w-full sm:w-auto"
+                  >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Create New Vendor
+                  </Button>
+                </motion.div>
+              )}
             </div>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>

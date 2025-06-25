@@ -20,6 +20,8 @@ import {
 } from "../../../data/manage/entity"
 import { Checkbox } from "@/components/ui/checkbox"
 import { formatDate } from "../../formatdate"
+import { fetchRolesByUserId } from "@/data/usermanage/responsibility"
+import { useAuth } from "@/context/AuthContext"
 
 export function EntityManagementPage() {
   const [entities, setEntities] = useState<Entity[]>([])
@@ -37,6 +39,8 @@ export function EntityManagementPage() {
   const itemsPerPage = 5
 
   const { showSuccessToast, showErrorToast, Toaster } = useToast({ position: "top-right" })
+  const { user } = useAuth()
+  const [entitiesAccess, setEntitiesAccess] = useState<number | null>(null)
 
   // Load entities and vendors on component mount
   useEffect(() => {
@@ -66,6 +70,25 @@ export function EntityManagementPage() {
       showErrorToast("Failed to load vendors", "Please try again later.")
     }
   }
+
+  // Fetch entities access on user change
+  useEffect(() => {
+    const fetchAccess = async () => {
+      if (user && user.id) {
+        try {
+          const roles = await fetchRolesByUserId(user.id)
+          if (roles && roles.length > 0) {
+            const tabsAccess = roles[0].tabs_access
+            const entitiesTab = tabsAccess.find((tab: any) => tab.hasOwnProperty("entities"))
+            setEntitiesAccess(entitiesTab ? entitiesTab.entities : null)
+          }
+        } catch {
+          setEntitiesAccess(null)
+        }
+      }
+    }
+    fetchAccess()
+  }, [user])
 
   // Handle search when search query changes
   useEffect(() => {
@@ -596,34 +619,38 @@ export function EntityManagementPage() {
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Bulk Upload */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="rounded-md  dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-                    >
-                      <Upload className="mr-2 h-4 w-4" />
-                      Bulk Upload
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="dark:bg-gray-800 dark:border-gray-700">
-                    <DropdownMenuItem onClick={handleBulkUpload} className="dark:text-gray-300 dark:hover:bg-gray-700">Upload CSV File</DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleBulkEdit} className="dark:text-gray-300 dark:hover:bg-gray-700">Edit Bulk (CSV)</DropdownMenuItem>
-                    <DropdownMenuItem onClick={downloadTemplate} className="dark:text-gray-300 dark:hover:bg-gray-700">Download Template</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {/* Bulk Upload - hide if entitiesAccess === 1 */}
+                {entitiesAccess !== 1 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        className="rounded-md  dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                      >
+                        <Upload className="mr-2 h-4 w-4" />
+                        Bulk Upload
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="dark:bg-gray-800 dark:border-gray-700">
+                      <DropdownMenuItem onClick={handleBulkUpload} className="dark:text-gray-300 dark:hover:bg-gray-700">Upload CSV File</DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleBulkEdit} className="dark:text-gray-300 dark:hover:bg-gray-700">Edit Bulk (CSV)</DropdownMenuItem>
+                      <DropdownMenuItem onClick={downloadTemplate} className="dark:text-gray-300 dark:hover:bg-gray-700">Download Template</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
 
-                {/* Create Button */}
-                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                  <Button
-                    onClick={handleCreate}
-                    className="bg-black hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 text-white border-0 rounded-md "
-                  >
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Create New Entity
-                  </Button>
-                </motion.div>
+                {/* Create Button - hide if entitiesAccess === 1 */}
+                {entitiesAccess !== 1 && (
+                  <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                    <Button
+                      onClick={handleCreate}
+                      className="bg-black hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 text-white border-0 rounded-md "
+                    >
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Create New Entity
+                    </Button>
+                  </motion.div>
+                )}
               </div>
             </div>
 

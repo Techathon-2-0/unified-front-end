@@ -1,10 +1,12 @@
-import { useRef } from "react"
+import { useRef, useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { MoreVertical, Edit, Trash2, ArrowUp, ArrowDown, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import type { GroupTableProps } from "../../../types/geofence/ggroup_type"
 import { formatDate } from "../../formatdate"
+import { fetchRolesByUserId } from "@/data/usermanage/responsibility"
+import { useAuth } from "@/context/AuthContext"
 
 export function GroupTable({
   groups,
@@ -17,6 +19,26 @@ export function GroupTable({
   isLoading = false,
 }: GroupTableProps) {
   const tableRef = useRef<HTMLDivElement>(null)
+  const { user } = useAuth()
+  const [geofenceGroupAccess, setGeofenceGroupAccess] = useState<number | null>(null)
+
+  useEffect(() => {
+    const fetchAccess = async () => {
+      if (user && user.id) {
+        try {
+          const roles = await fetchRolesByUserId(user.id)
+          if (roles && roles.length > 0) {
+            const tabsAccess = roles[0].tabs_access
+            const groupTab = tabsAccess.find((tab: any) => tab.hasOwnProperty("geofence_group"))
+            setGeofenceGroupAccess(groupTab ? groupTab.geofence_group : null)
+          }
+        } catch {
+          setGeofenceGroupAccess(null)
+        }
+      }
+    }
+    fetchAccess()
+  }, [user])
 
   const handleSort = (field: string) => {
     if (onSort && !isLoading) {
@@ -44,9 +66,12 @@ export function GroupTable({
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-900 sticky top-0 z-10 h-15">
             <tr>
-               <th scope="col" className="px-6 py-3 text-center text-sm font-medium text-gray-500 dark:text-gray-400">
-                Actions
-              </th>
+              {/* Conditionally render Actions header */}
+              {geofenceGroupAccess !== 1 && (
+                <th scope="col" className="px-6 py-3 text-center text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Actions
+                </th>
+              )}
               <th
                 scope="col"
                 className="pl-12 px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
@@ -147,31 +172,34 @@ export function GroupTable({
                     className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
                     onClick={() => !isLoading && onViewDetails(group)}
                   >
-                     <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium relative">
-                      <div onClick={(e) => e.stopPropagation()}>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" disabled={isLoading} className="dark:text-gray-300 dark:hover:bg-gray-700">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent className="dark:bg-gray-800 dark:border-gray-700">
-                            <DropdownMenuItem onClick={() => onEditGroup(group)} disabled={isLoading} className="dark:text-gray-300 dark:hover:bg-gray-700 dark:focus:bg-gray-700">
-                              <Edit className="h-4 w-4 mr-2" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-red-600 dark:text-red-400 dark:hover:bg-gray-700 dark:focus:bg-gray-700"
-                              onClick={() => onDeleteGroup(group)}
-                              disabled={isLoading}
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </td>
+                    {/* Conditionally render Actions cell */}
+                    {geofenceGroupAccess !== 1 && (
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium relative">
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" disabled={isLoading} className="dark:text-gray-300 dark:hover:bg-gray-700">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="dark:bg-gray-800 dark:border-gray-700">
+                              <DropdownMenuItem onClick={() => onEditGroup(group)} disabled={isLoading} className="dark:text-gray-300 dark:hover:bg-gray-700 dark:focus:bg-gray-700">
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-red-600 dark:text-red-400 dark:hover:bg-gray-700 dark:focus:bg-gray-700"
+                                onClick={() => onDeleteGroup(group)}
+                                disabled={isLoading}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </td>
+                    )}
                     <td className="pl-12 pr-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900 dark:text-white">{group.geo_group}</div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">ID: {group.id}</div>
@@ -185,7 +213,6 @@ export function GroupTable({
                     <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
                       {formatDate(group.updated_at)}
                     </td>
-                   
                   </motion.tr>
                 ))}
               </AnimatePresence>

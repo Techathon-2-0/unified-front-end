@@ -12,7 +12,9 @@ import {
   createResponsibility,
   updateResponsibility,
   deleteResponsibility,
+  fetchRolesByUserId,
 } from "../../../data/usermanage/responsibility"
+import { useAuth } from "../../../context/AuthContext"
 import type { Responsibility } from "../../../types/usermanage/responsibilty_type"
 
 export function ResponsibilitiesPage() {
@@ -24,6 +26,9 @@ export function ResponsibilitiesPage() {
   const [isLoading, setIsLoading] = useState(true)
   //const [isRefreshing, setIsRefreshing] = useState(false)
   const itemsPerPage = 5
+
+  const { user } = useAuth()
+  const [userResponsibilityAccess, setUserResponsibilityAccess] = useState<number | null>(null)
 
   // Create stable toast functions that won't change on re-renders
   const { showSuccessToast, showErrorToast, Toaster } = useToast({ position: "top-right" })
@@ -60,6 +65,24 @@ export function ResponsibilitiesPage() {
   useEffect(() => {
     loadRoles()
   }, [])
+
+  useEffect(() => {
+    const fetchAccess = async () => {
+      if (user && user.id) {
+        try {
+          const roles = await fetchRolesByUserId(user.id)
+          if (roles && roles.length > 0) {
+            const tabsAccess = roles[0].tabs_access
+            const respTab = tabsAccess.find((tab: any) => tab.hasOwnProperty("user_reponsibility"))
+            setUserResponsibilityAccess(respTab ? respTab.user_reponsibility : null)
+          }
+        } catch {
+          setUserResponsibilityAccess(null)
+        }
+      }
+    }
+    fetchAccess()
+  }, [user])
 
   // const handleRefresh = async () => {
   //   try {
@@ -202,25 +225,18 @@ export function ResponsibilitiesPage() {
               </motion.div>
 
               <div className="flex items-center gap-3 w-full sm:w-auto">
-                {/* Refresh Button
-                <Button
-                  variant="outline"
-                  onClick={handleRefresh}
-                  disabled={isRefreshing}
-                  className="rounded-md h-10 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-700"
-                >
-                  <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-                </Button> */}
-
-                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="flex-1 sm:flex-none">
-                  <Button
-                    onClick={handleCreate}
-                    className="bg-black hover:bg-gray-800 text-white border-0 rounded-md w-full sm:w-auto dark:bg-gray-800 dark:hover:bg-gray-700"
-                  >
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Create New Responsibility
-                  </Button>
-                </motion.div>
+                {/* Hide Create New Responsibility button if userResponsibilityAccess === 1 */}
+                {userResponsibilityAccess !== 1 && (
+                  <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="flex-1 sm:flex-none">
+                    <Button
+                      onClick={handleCreate}
+                      className="bg-black hover:bg-gray-800 text-white border-0 rounded-md w-full sm:w-auto dark:bg-gray-800 dark:hover:bg-gray-700"
+                    >
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Create New Responsibility
+                    </Button>
+                  </motion.div>
+                )}
               </div>
             </div>
 

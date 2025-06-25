@@ -16,7 +16,9 @@ import {
   fetchCustomerGroups,
   fetchUsers,
 } from "../../../data/alarm/aconfig"
+import { fetchRolesByUserId } from "../../../data/usermanage/responsibility"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/context/AuthContext"
 
 const AlarmConfigPage = () => {
   const [alarms, setAlarms] = useState<Alarm[]>([])
@@ -41,6 +43,10 @@ const AlarmConfigPage = () => {
   const [customerGroups, setCustomerGroups] = useState<any[]>([])
   const [geofenceGroups, setGeofenceGroups] = useState<any[]>([])
   const [users, setUsers] = useState<any[]>([])
+  const { user } = useAuth()
+
+  // Add state for alarm tab access
+  const [alarmTabAccess, setAlarmTabAccess] = useState<number | null>(null)
 
   const itemsPerPage = 5
   const { showSuccessToast, showErrorToast, Toaster } = useToast({ position: "top-right" })
@@ -78,6 +84,27 @@ const AlarmConfigPage = () => {
     // Fetch all required data
     fetchData()
   }, [])
+
+  // Fetch user roles and set alarm tab access
+  useEffect(() => {
+    const fetchUserRoles = async () => {
+      if (user && user.id) {
+        try {
+          const roles = await fetchRolesByUserId(user.id)
+          // Find the first role (assuming single role per user)
+          if (roles && roles.length > 0) {
+            const tabsAccess = roles[0].tabs_access
+            // Find the alarm tab access value
+            const alarmTab = tabsAccess.find((tab: any) => tab.hasOwnProperty("alarm"))
+            setAlarmTabAccess(alarmTab ? alarmTab.alarm : null)
+          }
+        } catch (error) {
+          setAlarmTabAccess(null)
+        }
+      }
+    }
+    fetchUserRoles()
+  }, [user])
 
   // Helper function to get group ID by name
   const getVehicleGroupIdByName = (name: string): number | null => {
@@ -351,15 +378,18 @@ const AlarmConfigPage = () => {
       <div className="container mx-auto max-w-full">
         <div className="mb-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-end mb-2 gap-4">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-4 py-2 bg-black dark:bg-gray-700 text-white rounded-md shadow-md hover:bg-gray-800 dark:hover:bg-gray-600 flex items-center"
-              onClick={handleCreateAlarm}
-            >
-              <Clock className="mr-2 h-5 w-5" />
-              Create New Alarm
-            </motion.button>
+            {/* Only show button if alarmTabAccess !== 1 */}
+            {alarmTabAccess !== 1 && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-4 py-2 bg-black dark:bg-gray-700 text-white rounded-md shadow-md hover:bg-gray-800 dark:hover:bg-gray-600 flex items-center"
+                onClick={handleCreateAlarm}
+              >
+                <Clock className="mr-2 h-5 w-5" />
+                Create New Alarm
+              </motion.button>
+            )}
           </div>
         </div>
 

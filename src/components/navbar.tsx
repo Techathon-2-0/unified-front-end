@@ -1,7 +1,7 @@
-import { useMemo, useState, useRef, useEffect } from "react"
+import { useMemo } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import Logo from "../assets/BigLogo.png"
-import { Bell, User, ChevronDown, Menu, X, LogOut } from "lucide-react"
+import { User, ChevronDown, Menu, LogOut } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,8 +10,6 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
 import { cn } from "@/lib/utils"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { fetchAlertsByUser } from "../data/alarm/alert"
 import { useAuth } from "../context/AuthContext"
 import DayNightToggleButton from './ui/dark-mode-button';
 
@@ -22,10 +20,6 @@ interface NavbarProps {
 function Navbar({ toggleSidebar }: NavbarProps) {
   const location = useLocation()
   const navigate = useNavigate()
-  const isMobile = useIsMobile()
-  const [showNotifications, setShowNotifications] = useState(false)
-  const notificationRef = useRef<HTMLDivElement>(null)
-  const bellRef = useRef<HTMLButtonElement>(null)
   const { user, logout } = useAuth()
 
   // Generate page title from current path
@@ -44,43 +38,6 @@ function Navbar({ toggleSidebar }: NavbarProps) {
         .join(" ") || "Dashboard"
     )
   }, [location])
-
-  // Close notifications when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        notificationRef.current &&
-        bellRef.current &&
-        !notificationRef.current.contains(event.target as Node) &&
-        !bellRef.current.contains(event.target as Node)
-      ) {
-        setShowNotifications(false)
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
-
-  // Add state for alerts
-  const [alerts, setAlerts] = useState<any[]>([])
-  const [loadingAlerts, setLoadingAlerts] = useState(false)
-
-  // Fetch alerts for the logged-in user
-  useEffect(() => {
-    if (user?.id) {
-      setLoadingAlerts(true)
-      fetchAlertsByUser(String(user.id))
-        .then((data) => setAlerts(Array.isArray(data) ? data : []))
-        .catch(() => setAlerts([]))
-        .finally(() => setLoadingAlerts(false))
-    }
-  }, [user?.id])
-
-  // Calculate unread count from alerts
-  const unreadCount = alerts.filter((n) => !n.read).length
 
   const handleProfileClick = () => {
     navigate("/profile")
@@ -123,166 +80,6 @@ function Navbar({ toggleSidebar }: NavbarProps) {
         <div className="flex items-center space-x-4">
           {/* Add the dark mode toggle here */}
           <DayNightToggleButton className="ml-6" /> {/* Adjust size as needed */}
-
-          <div className="relative">
-            <button
-              ref={bellRef}
-              className="p-2 text-gray-500 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
-              onClick={() => setShowNotifications(!showNotifications)}
-            >
-              <Bell className="w-5 h-5" />
-              {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 h-4 w-4 bg-red-600 dark:bg-red-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-
-            {/* Notifications dropdown */}
-            {showNotifications && (
-              <div
-                ref={notificationRef}
-                className={cn(
-                  "fixed inset-x-0 top-[56px] mx-auto bg-white dark:bg-gray-900 overflow-hidden z-50 border-b border-gray-200 dark:border-gray-700 animate-in fade-in-50 zoom-in-95 duration-150 shadow-xl dark:shadow-2xl",
-                  "sm:absolute sm:inset-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80 sm:rounded-lg sm:border sm:border-gray-200 sm:dark:border-gray-600",
-                )}
-                style={{ maxHeight: isMobile ? "calc(100vh - 56px)" : "450px" }}
-              >
-                <div className="sticky top-0 z-10 p-4 border-b border-gray-200 dark:border-gray-600 flex justify-between items-center bg-red-50 dark:bg-gray-900">
-                  <div>
-                    <h3 className="font-semibold text-gray-800 dark:text-gray-100">Notifications</h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                      You have {unreadCount} unread {unreadCount === 1 ? "notification" : "notifications"}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button className="text-xs font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 px-2 py-1 rounded-md shadow-sm border border-gray-200 dark:border-gray-600 transition-colors">
-                      Mark all read
-                    </button>
-                    <button
-                      className="sm:hidden p-1 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                      onClick={() => setShowNotifications(false)}
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="overflow-y-auto" style={{ maxHeight: isMobile ? "calc(100vh - 170px)" : "350px" }}>
-                  {loadingAlerts ? (
-                    <div className="py-12 px-4 text-center">
-                      <div className="mx-auto h-16 w-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-3">
-                        <Bell className="h-8 w-8 text-gray-400 dark:text-gray-500" />
-                      </div>
-                      <p className="text-gray-600 dark:text-gray-300 font-medium">Loading notifications...</p>
-                    </div>
-                  ) : alerts.length > 0 ? (
-                    <div>
-                      {alerts.map((alarm) => (
-                        <div
-                          key={alarm.id}
-                          className={cn(
-                            "p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer border-l-4",
-                            !alarm.read
-                              ? "border-l-red-500 dark:border-l-red-400 bg-red-50/50 dark:bg-red-900/10"
-                              : "border-l-transparent",
-                          )}
-                        >
-                          <div className="flex gap-3">
-                            <div className="flex-shrink-0 mt-0.5">
-                              {alarm.type.includes("alert") ? (
-                                <div className="h-9 w-9 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400">
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="18"
-                                    height="18"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  >
-                                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
-                                    <path d="M12 9v4"></path>
-                                    <path d="M12 17h.01"></path>
-                                  </svg>
-                                </div>
-                              ) : alarm.type.includes("update") ? (
-                                <div className="h-9 w-9 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="18"
-                                    height="18"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  >
-                                    <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path>
-                                    <path d="M21 3v5h-5"></path>
-                                  </svg>
-                                </div>
-                              ) : (
-                                <div className="h-9 w-9 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="18"
-                                    height="18"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  >
-                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path>
-                                    <path d="m9 12 2 2 4-4"></path>
-                                  </svg>
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex justify-between items-start">
-                                <p className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
-                                  {alarm.type}
-                                </p>
-                                <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap ml-2">
-                                  {alarm.createdOn}
-                                </span>
-                              </div>
-                              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
-                                {alarm.description}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="py-12 px-4 text-center">
-                      <div className="mx-auto h-16 w-16 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mb-3">
-                        <Bell className="h-8 w-8 text-gray-400 dark:text-gray-500" />
-                      </div>
-                      <p className="text-gray-600 dark:text-gray-300 font-medium">No notifications yet</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        We'll notify you when something arrives
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="sticky bottom-0 p-3 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-900/90 backdrop-blur-sm text-center">
-                  <button className="w-full py-2 px-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 dark:from-red-600 dark:to-red-700 dark:hover:from-red-700 dark:hover:to-red-800 text-white text-sm font-medium rounded-md transition-all duration-200 shadow-sm hover:shadow-md">
-                    View all notifications
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
           <DropdownMenu>
             <DropdownMenuTrigger className="focus:outline-none group">
               <div className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-all duration-200 ease-out">

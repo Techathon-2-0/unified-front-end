@@ -130,7 +130,7 @@ const FilterBar = ({
         "Status": vehicle.status,
         // "Altitude": `${vehicle.altitude||0} m`,
         "Speed": `${vehicle.speed} km/h`,
-        "Address": vehicle.address,
+        //"Address": vehicle.address,
         "Driver Name": vehicle.driverName,
         "Driver Mobile": vehicle.driverMobile,
         "Vendor Name": vehicle.vendorName,
@@ -397,8 +397,8 @@ const FilterBar = ({
           <div className="relative" ref={groupRef}>
             <button
               className={`h-9 flex items-center gap-2 px-4 py-2 border rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition-all hover:shadow ${selectedGroups.length > 0
-                  ? "bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-800 text-[#d5233b] dark:text-red-400"
-                  : "bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
+                ? "bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-800 text-[#d5233b] dark:text-red-400"
+                : "bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
                 }`}
               onClick={() => setShowGroupOptions(!showGroupOptions)}
               disabled={isLoadingGroups}
@@ -437,8 +437,8 @@ const FilterBar = ({
           <div className="relative" ref={statusRef}>
             <button
               className={`h-9 flex items-center gap-2 px-4 py-2 border rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition-all hover:shadow ${selectedStatuses.length > 0
-                  ? "bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-800 text-[#d5233b] dark:text-red-400"
-                  : "bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
+                ? "bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-800 text-[#d5233b] dark:text-red-400"
+                : "bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
                 }`}
               onClick={() => setShowStatusOptions(!showStatusOptions)}
             >
@@ -470,11 +470,10 @@ const FilterBar = ({
           {/* Trip Filter */}
           <div className="relative">
             <button
-              className={`h-9 flex items-center gap-2 px-4 py-2 border rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition-all hover:shadow ${
-                selectedTripStatuses.length > 0
+              className={`h-9 flex items-center gap-2 px-4 py-2 border rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition-all hover:shadow ${selectedTripStatuses.length > 0
                   ? "bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-800 text-[#d5233b] dark:text-red-400"
                   : "bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
-              }`}
+                }`}
               onClick={() => setShowTripOptions(!showTripOptions)}
             >
               Trip {selectedTripStatuses.length > 0 && `(${selectedTripStatuses.length})`}
@@ -581,8 +580,8 @@ const FilterBar = ({
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${selectedTypes.includes("Car")
-              ? "bg-gradient-to-r from-red-500 to-[#d5233b] text-white shadow-md"
-              : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+            ? "bg-gradient-to-r from-red-500 to-[#d5233b] text-white shadow-md"
+            : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
           onClick={() => handleTypeSelect("Car")}
         >
@@ -615,8 +614,8 @@ const FilterBar = ({
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${selectedTypes.includes("Truck")
-              ? "bg-gradient-to-r from-red-500 to-[#d5233b] text-white shadow-md"
-              : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+            ? "bg-gradient-to-r from-red-500 to-[#d5233b] text-white shadow-md"
+            : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
           onClick={() => handleTypeSelect("Truck")}
         >
@@ -632,8 +631,8 @@ const FilterBar = ({
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${selectedTypes.includes("Excavator")
-              ? "bg-gradient-to-r from-red-500 to-[#d5233b] text-white shadow-md"
-              : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+            ? "bg-gradient-to-r from-red-500 to-[#d5233b] text-white shadow-md"
+            : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
           onClick={() => handleTypeSelect("Excavator")}
         >

@@ -704,34 +704,58 @@ export function ResponsibilityModal({ open, onClose, responsibility, onSave }: R
                         <div>
                           <h3 className="text-md font-medium text-gray-800 dark:text-gray-200 mb-3">Reports Access</h3>
                           <div className="space-y-4">
-                            {[
+                            { [
                               { key: "allReports", label: "All Reports" },
                               { key: "scheduleReport", label: "Schedule Report" },
                             ].map((item) => (
                               <div key={item.key} className="border dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-800">
                                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{item.label}</h4>
                                 <div className="flex gap-2">
-                                  {[
-                                    { value: "none", label: "None" },
-                                    { value: "view", label: "View" },
-                                    { value: "both", label: "Both" },
-                                  ].map((option) => (
-                                    <button
-                                      key={option.value}
-                                      onClick={() =>
-                                        setTabsAccess((prev) => ({
-                                          ...prev,
-                                          reports: { ...prev.reports, [item.key]: option.value as any },
-                                        }))
-                                      }
-                                      className={`px-3 py-1 text-xs rounded-md transition-colors ${tabsAccess.reports[item.key as keyof typeof tabsAccess.reports] === option.value
-                                        ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-600"
-                                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                  {/* Remove "both" option for allReports */}
+                                  {item.key === "allReports"
+                                    ? [
+                                      { value: "none", label: "None" },
+                                      { value: "view", label: "View" },
+                                    ].map((option) => (
+                                      <button
+                                        key={option.value}
+                                        onClick={() =>
+                                          setTabsAccess((prev) => ({
+                                            ...prev,
+                                            reports: { ...prev.reports, [item.key]: option.value as any },
+                                          }))
+                                        }
+                                        className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                                          tabsAccess.reports[item.key as keyof typeof tabsAccess.reports] === option.value
+                                            ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-600"
+                                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                                         }`}
-                                    >
-                                      {option.label}
-                                    </button>
-                                  ))}
+                                      >
+                                        {option.label}
+                                      </button>
+                                    ))
+                                    : [
+                                      { value: "none", label: "None" },
+                                      { value: "view", label: "View" },
+                                      { value: "both", label: "Both" },
+                                    ].map((option) => (
+                                      <button
+                                        key={option.value}
+                                        onClick={() =>
+                                          setTabsAccess((prev) => ({
+                                            ...prev,
+                                            reports: { ...prev.reports, [item.key]: option.value as any },
+                                          }))
+                                        }
+                                        className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                                          tabsAccess.reports[item.key as keyof typeof tabsAccess.reports] === option.value
+                                            ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-600"
+                                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                        }`}
+                                      >
+                                        {option.label}
+                                      </button>
+                                    ))}
                                 </div>
                               </div>
                             ))}
@@ -778,7 +802,7 @@ export function ResponsibilityModal({ open, onClose, responsibility, onSave }: R
                         <div>
                           <h3 className="text-md font-medium text-gray-800 dark:text-gray-200 mb-3">Geofence Access</h3>
                           <div className="space-y-4">
-                            {[
+                            { [
                               { key: "config", label: "Config" },
                               { key: "group", label: "Group" },
                               { key: "stats", label: "Stats" },
@@ -786,28 +810,51 @@ export function ResponsibilityModal({ open, onClose, responsibility, onSave }: R
                               <div key={item.key} className="border dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-800">
                                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{item.label}</h4>
                                 <div className="flex gap-2">
-                                  {[
-                                    { value: "none", label: "None" },
-                                    { value: "view", label: "View" },
-                                    { value: "both", label: "Both" },
-                                  ].map((option) => (
-                                    <button
-                                      key={option.value}
-                                      onClick={() =>
-                                        setTabsAccess((prev) => ({
-                                          ...prev,
-                                          geofence: { ...prev.geofence, [item.key]: option.value as any },
-                                        }))
-                                      }
-                                      className={`px-3 py-1 text-xs rounded-md transition-colors ${tabsAccess.geofence[item.key as keyof typeof tabsAccess.geofence] ===
-                                        option.value
-                                        ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-600"
-                                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                  {/* Remove "both" option for stats */}
+                                  {item.key === "stats"
+                                    ? [
+                                      { value: "none", label: "None" },
+                                      { value: "view", label: "View" },
+                                    ].map((option) => (
+                                      <button
+                                        key={option.value}
+                                        onClick={() =>
+                                          setTabsAccess((prev) => ({
+                                            ...prev,
+                                            geofence: { ...prev.geofence, [item.key]: option.value as any },
+                                          }))
+                                        }
+                                        className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                                          tabsAccess.geofence[item.key as keyof typeof tabsAccess.geofence] === option.value
+                                            ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-600"
+                                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                                         }`}
-                                    >
-                                      {option.label}
-                                    </button>
-                                  ))}
+                                      >
+                                        {option.label}
+                                      </button>
+                                    ))
+                                    : [
+                                      { value: "none", label: "None" },
+                                      { value: "view", label: "View" },
+                                      { value: "both", label: "Both" },
+                                    ].map((option) => (
+                                      <button
+                                        key={option.value}
+                                        onClick={() =>
+                                          setTabsAccess((prev) => ({
+                                            ...prev,
+                                            geofence: { ...prev.geofence, [item.key]: option.value as any },
+                                          }))
+                                        }
+                                        className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                                          tabsAccess.geofence[item.key as keyof typeof tabsAccess.geofence] === option.value
+                                            ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-600"
+                                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                        }`}
+                                      >
+                                        {option.label}
+                                      </button>
+                                    ))}
                                 </div>
                               </div>
                             ))}

@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useState, useMemo, useEffect } from "react"
 import {
   Search,
-  Plus,
   MapIcon,
   ChevronDown,
   ChevronRight,
@@ -44,6 +43,8 @@ import {
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import { formatDate } from "../../formatdate"
+import { fetchRolesByUserId } from "@/data/usermanage/responsibility"
+import { useAuth } from "@/context/AuthContext"
 
 // Helper functions for type conversion
 const getGeofenceTypeNumber = (type: "circle" | "polygon" | "pointer"): number => {
@@ -83,11 +84,31 @@ export default function GeofenceConfiguration() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
   const { showSuccessToast, showErrorToast, Toaster } = useToast({ position: "top-right" })
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
+  const { user } = useAuth()
+  const [geofenceConfigAccess, setGeofenceConfigAccess] = useState<number | null>(null)
 
   // Load geofences on component mount
   useEffect(() => {
     loadGeofences()
   }, [])
+
+  useEffect(() => {
+    const fetchAccess = async () => {
+      if (user && user.id) {
+        try {
+          const roles = await fetchRolesByUserId(user.id)
+          if (roles && roles.length > 0) {
+            const tabsAccess = roles[0].tabs_access
+            const geofenceTab = tabsAccess.find((tab: any) => tab.hasOwnProperty("geofence_config"))
+            setGeofenceConfigAccess(geofenceTab ? geofenceTab.geofence_config : null)
+          }
+        } catch {
+          setGeofenceConfigAccess(null)
+        }
+      }
+    }
+    fetchAccess()
+  }, [user])
 
   const loadGeofences = async () => {
     try {
@@ -865,11 +886,13 @@ export default function GeofenceConfiguration() {
                   <DropdownMenuItem onClick={downloadTemplate} className="dark:text-gray-300 dark:hover:bg-gray-700">Download Template</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              {/* Add New Button */}
-              <Button onClick={handleAddNew} className="bg-black hover:bg-gray-800 dark:bg-gray-900 dark:hover:bg-gray-700 w-full sm:w-auto dark:text-white">
-                <span className="sm:hidden">Add New Geofence</span>
-                <span className="hidden sm:inline">Add Geofence</span>
-              </Button>
+              {/* Add New Button - hide if geofenceConfigAccess === 1 */}
+              {geofenceConfigAccess !== 1 && (
+                <Button onClick={handleAddNew} className="bg-black hover:bg-gray-800 dark:bg-gray-900 dark:hover:bg-gray-700 w-full sm:w-auto dark:text-white">
+                  <span className="sm:hidden">Add New Geofence</span>
+                  <span className="hidden sm:inline">Add Geofence</span>
+                </Button>
+              )}
             </div>
           </div>
           <hr className="my-2 border-gray-200 dark:border-gray-700" />
@@ -895,7 +918,10 @@ export default function GeofenceConfiguration() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50 dark:bg-gray-900">
-                    <TableHead className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Actions</TableHead>
+                    {/* Actions header - hide if geofenceConfigAccess === 1 */}
+                    {geofenceConfigAccess !== 1 && (
+                      <TableHead className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">Actions</TableHead>
+                    )}
                     <TableHead
                       className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
                       onClick={() => handleSort("name")}
@@ -936,14 +962,6 @@ export default function GeofenceConfiguration() {
                             <MapIcon className="h-6 w-6 text-slate-400 dark:text-slate-500" />
                           </div>
                           <p>No geofences found</p>
-                          {searchTerm ? (
-                            <p className="text-xs">Try adjusting your search terms</p>
-                          ) : (
-                            <Button onClick={handleAddNew} className="dark:bg-gray-700 dark:text-white">
-                              <Plus className="h-4 w-4 mr-2" />
-                              Add Geofence
-                            </Button>
-                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -960,33 +978,36 @@ export default function GeofenceConfiguration() {
                             }`}
                           onClick={() => handleSelectGeofence(geofence.id)}
                         >
-                          <TableCell className="px-6 py-4 whitespace-nowrap">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="h-8 w-8 p-0 dark:text-gray-300 dark:hover:bg-gray-700"
-                                >
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent className="dark:bg-gray-800 dark:border-gray-700">
-                                <DropdownMenuItem onClick={() => handleEditGeofence(geofence.id)} className="dark:text-gray-300 dark:hover:bg-gray-700">
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleDeleteGeofence(geofence.id)}
-                                  className="text-red-600 dark:text-red-400 dark:hover:bg-gray-700"
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
+                          {/* Actions cell - hide if geofenceConfigAccess === 1 */}
+                          {geofenceConfigAccess !== 1 && (
+                            <TableCell className="px-6 py-4 whitespace-nowrap">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="h-8 w-8 p-0 dark:text-gray-300 dark:hover:bg-gray-700"
+                                  >
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="dark:bg-gray-800 dark:border-gray-700">
+                                  <DropdownMenuItem onClick={() => handleEditGeofence(geofence.id)} className="dark:text-gray-300 dark:hover:bg-gray-700">
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => handleDeleteGeofence(geofence.id)}
+                                    className="text-red-600 dark:text-red-400 dark:hover:bg-gray-700"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          )}
                           <TableCell className="px-6 py-4 whitespace-nowrap font-medium dark:text-white">{geofence.geofence_name}</TableCell>
                           <TableCell className="px-6 py-4 whitespace-nowrap font-medium dark:text-white">{geofence.id}</TableCell>
                           <TableCell className="px-6 py-4 whitespace-nowrap">

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   X,
   Battery,
@@ -26,6 +26,7 @@ import {
 } from "lucide-react"
 import type { VehicleDetailsModalProps, RegistrationDbResponse } from "../../types/live/list_type"
 import { fetchRegistrationFromDb, refreshRegistrationDetails } from "../../data/live/list"
+import { reverseGeocode } from "../reversegeocoding"
 
 const VehicleDetailsModal = ({ vehicle, onClose }: VehicleDetailsModalProps) => {
   const [activeTab, setActiveTab] = useState<"details" | "registration">("details")
@@ -34,6 +35,8 @@ const VehicleDetailsModal = ({ vehicle, onClose }: VehicleDetailsModalProps) => 
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasLoadedDb, setHasLoadedDb] = useState(false)
+  const [address, setAddress] = useState<string>("")
+  const [addressLoading, setAddressLoading] = useState(false)
 
   const overlayVariants = {
     hidden: { opacity: 0 },
@@ -438,6 +441,19 @@ const VehicleDetailsModal = ({ vehicle, onClose }: VehicleDetailsModalProps) => 
     )
   }
 
+  // Fetch address when modal opens and lat/lng are present
+  useEffect(() => {
+    if (vehicle.lat && vehicle.lng) {
+      setAddressLoading(true)
+      reverseGeocode(vehicle.lat, vehicle.lng)
+        .then(addr => setAddress(addr))
+        .catch(() => setAddress("Error retrieving address"))
+        .finally(() => setAddressLoading(false))
+    } else {
+      setAddress("")
+    }
+  }, [vehicle.lat, vehicle.lng])
+
   return (
     <motion.div
       variants={overlayVariants}
@@ -539,7 +555,7 @@ const VehicleDetailsModal = ({ vehicle, onClose }: VehicleDetailsModalProps) => 
                   GPS Information
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-
+                  {/* GPS Status */}
                   <div className="flex items-center">
                     <Wifi className="h-5 w-5 text-blue-500 dark:text-blue-400 mr-3" />
                     <div>
@@ -548,6 +564,7 @@ const VehicleDetailsModal = ({ vehicle, onClose }: VehicleDetailsModalProps) => 
                     </div>
                   </div>
 
+                  {/* GPRS Status */}
                   <div className="flex items-center">
                     <Wifi className="h-5 w-5 text-blue-500 dark:text-blue-400 mr-3" />
                     <div>
@@ -555,6 +572,7 @@ const VehicleDetailsModal = ({ vehicle, onClose }: VehicleDetailsModalProps) => 
                       <p className="text-sm font-medium text-gray-900 dark:text-white">{vehicle.gprsStatus}</p>
                     </div>
                   </div>
+                  {/* GPS Ping */}
                   <div className="flex items-center">
                     <Wifi className="h-5 w-5 text-blue-500 dark:text-blue-400 mr-3" />
                     <div>
@@ -578,23 +596,51 @@ const VehicleDetailsModal = ({ vehicle, onClose }: VehicleDetailsModalProps) => 
                       <p className="text-sm font-medium text-gray-900 dark:text-white">{vehicle.gprsTime || "No Data"}</p>
                     </div>
                   </div>
-                  {/* <div className="flex items-center">
-                    <Cpu className="h-5 w-5 text-blue-500 dark:text-blue-400 mr-3" />
-                    <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Device Name</p>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        {vehicle.deviceName || "No Data"}
-                      </p>
-                    </div>
-                  </div> */}
+                  {/* Today Distance */}
                   <div className="flex items-center">
                     <MapPin className="h-5 w-5 text-blue-500 dark:text-blue-400 mr-3" />
                     <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Distance</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Today Distance</p>
                       <p className="text-sm font-medium text-gray-900 dark:text-white">{vehicle.todayDistance || "0"}</p>
                     </div>
                   </div>
-
+                  {/* Lat, Lng */}
+                  <div className="flex items-center">
+                    <MapPin className="h-5 w-5 text-blue-500 dark:text-blue-400 mr-3" />
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Lat, Lng</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {vehicle.lat && vehicle.lng
+                          ? `${vehicle.lat.toFixed(6)}, ${vehicle.lng.toFixed(6)}`
+                          : "No location"}
+                      </p>
+                    </div>
+                  </div>
+                  {/* Address (third row, after Lat/Lng and Today Distance) */}
+                  <div className="flex items-center">
+                    <MapPin className="h-5 w-5 text-blue-500 dark:text-blue-400 mr-3" />
+                    <div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Address</p>
+                      <div className="relative group w-fit">
+                        <div className="truncate max-w-[220px] text-sm font-medium text-gray-900 dark:text-white cursor-default">
+                          {addressLoading
+                            ? "Loading address..."
+                            : address
+                              ? address
+                              : "No address"}
+                        </div>
+                        {address && !addressLoading && (
+                          <div className="absolute left-0 bottom-full mb-2 px-3 py-2 bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-md shadow-xl border border-slate-700 z-10 min-w-0 w-max max-w-[400px] break-words whitespace-normal opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out transform group-hover:-translate-y-1 translate-y-1">
+                            <div className="font-medium text-slate-100 leading-snug break-words">
+                              {address}
+                            </div>
+                            {/* Tooltip arrow pointing down */}
+                            <div className="absolute -bottom-1 left-4 w-2 h-2 bg-slate-900 dark:bg-slate-800 border-r border-b border-slate-700 transform rotate-45"></div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 

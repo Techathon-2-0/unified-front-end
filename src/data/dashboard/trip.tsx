@@ -27,15 +27,17 @@ export async function fetchTrips(
     const page = filters?.page || 1
     const limit = filters?.limit || 100
 
-    // Set default date range (last 7 days)
-    const endDate = filters?.endDate || new Date().toISOString().split("T")[0]
-    const startDate = filters?.startDate || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
-
     params.append("status", status)
-    params.append("startDate", startDate)
-    params.append("endDate", endDate)
     params.append("page", page.toString())
     params.append("limit", limit.toString())
+
+    // Only append startDate and endDate if provided from frontend
+    if (filters?.startDate) {
+      params.append("startDate", filters.startDate)
+    }
+    if (filters?.endDate) {
+      params.append("endDate", filters.endDate)
+    }
 
     const res = await axios.get(
       `${import.meta.env.VITE_BACKEND_URL}/trip/v1/${userId}?${params}`,

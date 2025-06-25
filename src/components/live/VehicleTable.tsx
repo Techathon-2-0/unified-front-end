@@ -128,17 +128,22 @@ const VehicleTable = ({
                 >
                   <button
                     className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300"
-                    onClick={() => handleSortClick("address")}
+                    // No sort for lat/lng
                   >
-                    Address {getSortIcon("address")}
+                    Location
                   </button>
                 </th>
-                {/* <th
+                <th
                   scope="col"
-                  className="px-6 py-3 text-center text-sm font-medium text-gray-500 dark:text-gray-400"
+                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400"
                 >
-                  Altitude
-                </th> */}
+                  <button
+                    className="flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-300"
+                    // No sort for vendorName
+                  >
+                    GPS Vendor
+                  </button>
+                </th>
                 <th
                   scope="col"
                   className="px-6 pr-13 py-3 text-center text-sm font-medium text-gray-500 dark:text-gray-400"
@@ -207,21 +212,14 @@ const VehicleTable = ({
                       {/* <td className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">{vehicle.deviceName}</td> */}
                       <td className="px-6 py-4 text-left text-sm text-gray-500 dark:text-gray-400">{vehicle.speed || 0} km/h</td>
                       <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-xs">
-                        <div className="relative group max-w-xs">
-                          <div className="truncate cursor-default">
-                            {vehicle.address || "No address"}
-                          </div>
-                          {vehicle.address && (
-                            <div className="absolute left-0 bottom-full mb-2 px-3 py-2 bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-md shadow-xl border border-slate-700 z-10 min-w-0 w-max max-w-[400px] break-words whitespace-normal opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out transform group-hover:-translate-y-1 translate-y-1">
-                              <div className="font-medium text-slate-100 leading-snug break-words">
-                                {vehicle.address}
-                              </div>
-
-                              {/* Tooltip arrow pointing down */}
-                              <div className="absolute -bottom-1 left-4 w-2 h-2 bg-slate-900 dark:bg-slate-800 border-r border-b border-slate-700 transform rotate-45"></div>
-                            </div>
-                          )}
+                        <div className="truncate cursor-default">
+                          {vehicle.lat && vehicle.lng
+                            ? `${vehicle.lat.toFixed(6)}, ${vehicle.lng.toFixed(6)}`
+                            : "No location"}
                         </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        {vehicle.vendorName || "-"}
                       </td>
                       {/* <td className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">{vehicle.altitude}</td> */}
                       <td className="px-6 pr-13  py-4 text-center text-sm text-gray-500 dark:text-gray-400 w-1 whitespace-nowrap">

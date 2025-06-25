@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { CheckCircle, XCircle, AlertTriangle, Clock, ExternalLink, Car, MapPin } from "lucide-react";
+import { CheckCircle, AlertTriangle, Clock, ExternalLink, Car, MapPin } from "lucide-react";
 //import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { fetchVehicles } from "../../../data/live/list"; // Adjust path as needed
-// import { reverseGeocode } from "@/components/reversegeocoding"; // Path as you said
 import { useAuth } from "../../../context/AuthContext"; // Adjust path as needed
 import DashboardCard from "./DashboardCard"
 
@@ -18,33 +17,28 @@ type Vehicle = {
   driverMobile: string;
   lat: number;
   lng: number;
-  address?: string; // Optional, will be fetched later
+  vendorName?: string; // Add vendorName as optional
+  // address?: string; // Remove address, not used anymore
 };
 
 const StatusIndicator: React.FC<{ status: string }> = ({ status }) => {
   const configs = {
-    Active: { 
+    "Active": { 
       icon: CheckCircle, 
-      color: "text-green-500", 
-      bg: "bg-green-100 dark:bg-green-900/30", 
+      color: "text-green-800 dark:text-green-300", 
+      bg: "bg-green-100 dark:bg-green-900/50", 
       label: "Active" 
     },
-    Idle: { 
+    "No Update": { 
       icon: Clock, 
-      color: "text-yellow-500", 
-      bg: "bg-yellow-100 dark:bg-yellow-900/30", 
-      label: "Idle" 
-    },
-    Stopped: { 
-      icon: XCircle, 
-      color: "text-red-500", 
-      bg: "bg-red-100 dark:bg-red-900/30", 
-      label: "Stopped" 
+      color: "text-yellow-800 dark:text-yellow-300", 
+      bg: "bg-yellow-100 dark:bg-yellow-900/50", 
+      label: "No Update" 
     },
     "No Data": { 
       icon: AlertTriangle, 
-      color: "text-gray-500 dark:text-gray-400", 
-      bg: "bg-gray-100 dark:bg-gray-800", 
+      color: "text-red-800 dark:text-red-300", 
+      bg: "bg-red-100  dark:bg-red-900/50", 
       label: "No Data" 
     },
   };
@@ -76,15 +70,6 @@ const VehicleStatus: React.FC = () => {
       const vehiclesArray = Array.isArray(data) ? data : [];
       setVehicles(vehiclesArray);
 
-      // const newAddresses: Record<string, string> = {};
-      // await Promise.all(
-      //   vehiclesArray.map(async (vehicle) => {
-      //     const address = await reverseGeocode(vehicle.lat, vehicle.lng);
-      //     newAddresses[vehicle.id] = address;
-      //   })
-      // );
-
-      // setAddresses(newAddresses);
       setLoading(false);
     };
 
@@ -140,7 +125,7 @@ const VehicleStatus: React.FC = () => {
       <div className="flex-1 overflow-hidden">
         {/* Responsive overflow: horizontal scroll only on small screens */}
         <div className="h-full overflow-x-auto">
-          <div className="w-full">
+          <div className="w-full h-full">
             <table className="w-full min-w-[600px] lg:min-w-0">
                 <thead className="bg-gray-50 dark:bg-gray-900 sticky top-0 z-10">
                   <tr>
@@ -156,17 +141,19 @@ const VehicleStatus: React.FC = () => {
                     <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider min-w-[140px]">
                       Driver
                     </th>
-                    <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider min-w-[200px]">
+                    <th className="px-3 sm:px-4 pr-0 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider min-w-[200px]">
                       Location
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {vehicles.slice(0, 4).map((vehicle, index) => (
+                  {vehicles.map((vehicle, index) => (
                     <tr
                       key={vehicle.id}
                       className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 animate-in fade-in slide-in-from-bottom-2"
-                      style={{ animationDelay: `${index * 30}ms` }}
+                      style={{
+                        animationDelay: `${index * 30}ms`
+                      }}
                     >
                       <td className="px-3 sm:px-4 py-4 min-w-[160px]">
                         <div className="flex items-center space-x-3">
@@ -194,24 +181,25 @@ const VehicleStatus: React.FC = () => {
                           <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{vehicle.driverMobile || "-"}</div>
                         </div>
                       </td>
-                      <td className="px-3 sm:px-4 py-4 min-w-[200px]">
+                      <td className="px-3 sm:px-4 pr-0 py-4 min-w-[200px]">
                         <div className="flex items-center space-x-1 min-w-0">
                           <MapPin size={12} className="text-gray-400 dark:text-gray-500 flex-shrink-0" />
                           <div className="relative group max-w-xs">
-                          <div className="truncate text-xs cursor-default max-w-[150px]">
-                            {vehicle.address || "No address"}
-                          </div>
-                          {vehicle.address && (
-                            <div className="absolute left-0 bottom-full mb-2 px-3 py-2 bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-md shadow-xl border border-slate-700 z-10 min-w-0 w-max max-w-[200px] break-words whitespace-normal opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 ease-in-out transform group-hover:-translate-y-1 translate-y-1">
-                              <div className="font-medium text-slate-100 leading-snug break-words">
-                                {vehicle.address}
-                              </div>
-
-                              {/* Tooltip arrow pointing down */}
-                              <div className="absolute -bottom-1 left-4 w-2 h-2 bg-slate-900 dark:bg-slate-800 border-r border-b border-slate-700 transform rotate-45"></div>
+                            <div className="truncate text-xs cursor-default max-w-[180px]">
+                              {/* Show lat/lng */}
+                              <span>
+                                {vehicle.lat && vehicle.lng
+                                  ? `${vehicle.lat.toFixed(6)}, ${vehicle.lng.toFixed(6)}`
+                                  : "No location"}
+                              </span>
+                              {/* Vendor name on next line if present */}
+                              {vehicle.vendorName && (
+                                <div className="mt-0.5 text-[10px] text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded w-fit">
+                                  {vehicle.vendorName}
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
+                          </div>
                         </div>
                       </td>
                     </tr>

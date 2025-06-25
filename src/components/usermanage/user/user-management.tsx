@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import type { User } from "../../../types/usermanage/user_type"
 import { fetchUsers, createUser, updateUser, deleteUser, searchUsers } from "../../../data/usermanage/user"
+import { fetchRolesByUserId } from "@/data/usermanage/responsibility"
 import { useAuth } from "../../../context/AuthContext"
 
 export function UserManagementPage() {
@@ -21,13 +22,31 @@ export function UserManagementPage() {
   const itemsPerPage = 5
 
   const { showSuccessToast, showErrorToast, Toaster } = useToast({ position: "top-right" })
-  const { logout } = useAuth()
-  // const navigate = useNavigate()
+  const { logout, user } = useAuth()
+  const [userAccess, setUserAccess] = useState<number | null>(null)
 
   // Load users on component mount
   useEffect(() => {
     loadUsers()
   }, [])
+
+  useEffect(() => {
+    const fetchAccess = async () => {
+      if (user && user.id) {
+        try {
+          const roles = await fetchRolesByUserId(user.id)
+          if (roles && roles.length > 0) {
+            const tabsAccess = roles[0].tabs_access
+            const userTab = tabsAccess.find((tab: any) => tab.hasOwnProperty("user_access"))
+            setUserAccess(userTab ? userTab.user_access : null)
+          }
+        } catch {
+          setUserAccess(null)
+        }
+      }
+    }
+    fetchAccess()
+  }, [user])
 
   const loadUsers = async () => {
     try {
@@ -201,15 +220,18 @@ export function UserManagementPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </motion.div>
-              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
-                <Button
-                  onClick={handleCreate}
-                  className="bg-black hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 text-white border-0 rounded-md w-full sm:w-auto"
-                >
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Create New User
-                </Button>
-              </motion.div>
+              {/* Hide Create New User button if userAccess === 1 */}
+              {userAccess !== 1 && (
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
+                  <Button
+                    onClick={handleCreate}
+                    className="bg-black hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 text-white border-0 rounded-md w-full sm:w-auto"
+                  >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Create New User
+                  </Button>
+                </motion.div>
+              )}
             </div>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>

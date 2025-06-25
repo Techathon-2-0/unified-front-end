@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import type { Group } from "../../../types/manage/group_type"
 import { fetchGroups, createGroup, updateGroup, deleteGroup, searchGroups } from "../../../data/manage/group"
+import { fetchRolesByUserId } from "@/data/usermanage/responsibility"
+import { useAuth } from "@/context/AuthContext"
 
 export function GroupManagementPage() {
   const [groups, setGroups] = useState<Group[]>([])
@@ -151,6 +153,27 @@ export function GroupManagementPage() {
     setCurrentPage(page)
   }
 
+  const { user } = useAuth()
+  const [groupAccess, setGroupAccess] = useState<number | null>(null)
+
+  useEffect(() => {
+    const fetchAccess = async () => {
+      if (user && user.id) {
+        try {
+          const roles = await fetchRolesByUserId(user.id)
+          if (roles && roles.length > 0) {
+            const tabsAccess = roles[0].tabs_access
+            const groupTab = tabsAccess.find((tab: any) => tab.hasOwnProperty("group"))
+            setGroupAccess(groupTab ? groupTab.group : null)
+          }
+        } catch {
+          setGroupAccess(null)
+        }
+      }
+    }
+    fetchAccess()
+  }, [user])
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen bg-slate-50 dark:bg-gray-900">
@@ -185,15 +208,18 @@ export function GroupManagementPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </motion.div>
-              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
-                <Button
-                  onClick={handleCreate}
-                  className="bg-black hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 text-white border-0 rounded-md w-full sm:w-auto"
-                >
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Create New Group
-                </Button>
-              </motion.div>
+              {/* Hide Create New Group button if groupAccess === 1 */}
+              {groupAccess !== 1 && (
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
+                  <Button
+                    onClick={handleCreate}
+                    className="bg-black hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 text-white border-0 rounded-md w-full sm:w-auto"
+                  >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Create New Group
+                  </Button>
+                </motion.div>
+              )}
             </div>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>

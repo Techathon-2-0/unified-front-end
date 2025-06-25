@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Edit, Trash2, ChevronDown, ChevronLeft, ChevronRight, Eye, MoreVertical, ChevronUp, CheckCircle, XCircle } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -13,6 +13,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import type { UserTableProps } from "../../../types/usermanage/user_type"
+import { fetchRolesByUserId } from "@/data/usermanage/responsibility"
+import { useAuth } from "@/context/AuthContext"
 
 type SortField = "name" | "status"
 type SortDirection = "asc" | "desc"
@@ -30,6 +32,26 @@ export function UserTable({
   const [expandedRow, setExpandedRow] = useState<number | null>(null)
   const [sortField, setSortField] = useState<SortField>("name")
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
+  const { user } = useAuth()
+  const [userAccess, setUserAccess] = useState<number | null>(null)
+
+  useEffect(() => {
+    const fetchAccess = async () => {
+      if (user && user.id) {
+        try {
+          const roles = await fetchRolesByUserId(user.id)
+          if (roles && roles.length > 0) {
+            const tabsAccess = roles[0].tabs_access
+            const userTab = tabsAccess.find((tab: any) => tab.hasOwnProperty("user_access"))
+            setUserAccess(userTab ? userTab.user_access : null)
+          }
+        } catch {
+          setUserAccess(null)
+        }
+      }
+    }
+    fetchAccess()
+  }, [user])
 
   const handleDeleteClick = (id: number) => {
     setDeleteConfirmId(id)
@@ -99,9 +121,12 @@ export function UserTable({
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0 z-10">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 lg:pr-0">Actions</th>
+                {/* Conditionally render Actions header */}
+                {userAccess !== 1 && (
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 lg:pr-0">Actions</th>
+                )}
                 <th
-                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 lg:pl-0 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                   onClick={() => handleSort("name")}
                 >
                   <div className="flex items-center">
@@ -147,32 +172,35 @@ export function UserTable({
                         className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
                         onClick={() => toggleRow(user.id)}
                       >
-                        <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium relative lg:pr-0">
-                          <div onClick={(e) => e.stopPropagation()}>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <MoreVertical className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-                                  <span className="sr-only">Open menu</span>
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent>
-                                <DropdownMenuItem onClick={() => onEdit(user)}>
-                                  <Edit className="mr-2 h-4 w-4 text-gray-400 dark:text-gray-500" />
-                                  Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleDeleteClick(user.id)}
-                                  className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4 text-red-400 dark:text-red-500" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap lg:pl-0">
+                        {/* Conditionally render Actions cell */}
+                        {userAccess !== 1 && (
+                          <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium relative lg:pr-0">
+                            <div onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreVertical className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                                    <span className="sr-only">Open menu</span>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                  <DropdownMenuItem onClick={() => onEdit(user)}>
+                                    <Edit className="mr-2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                                    Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => handleDeleteClick(user.id)}
+                                    className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4 text-red-400 dark:text-red-500" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </td>
+                        )}
+                        <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <ChevronDown
                               className={`mr-2 h-4 w-4 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${expandedRow === user.id ? "rotate-180" : ""

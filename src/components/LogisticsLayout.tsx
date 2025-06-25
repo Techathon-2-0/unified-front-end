@@ -7,6 +7,8 @@ import { useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '../context/AuthContext';
+import PageNotFound from './pageNotFound'
+import { fetchRolesByUserId } from '@/data/usermanage/responsibility'
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -19,6 +21,10 @@ const LogisticsLayout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const { user, loading: authLoading } = useAuth();
 
+  // New: Store allowed tabs for this user
+  const [allowedTabs, setAllowedTabs] = useState<string[]>([]);
+  const [accessChecked, setAccessChecked] = useState(false);
+
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
@@ -29,14 +35,77 @@ const LogisticsLayout: React.FC<LayoutProps> = ({ children }) => {
     return () => clearTimeout(timeout);
   }, [location.pathname]);
 
-  // Show loading if auth is still loading
-  if (authLoading) {
+  useEffect(() => {
+    const fetchAccess = async () => {
+      if (user && user.id) {
+        try {
+          const roles = await fetchRolesByUserId(user.id);
+          if (roles && roles.length > 0) {
+            // Tabs
+            // Tabs
+            const tabs = roles[0].tabs_access.map((tab: any) => Object.keys(tab)[0]);
+            setAllowedTabs(tabs);
+          }
+        } catch {
+          setAllowedTabs([]);
+        } finally {
+          setAccessChecked(true);
+        }
+        setAccessChecked(true);
+      }
+    };
+    fetchAccess();
+  }, [user]);
+
+  // Route-to-tab mapping
+  const routeTabMap: Record<string, string> = {
+    "/dashboard": "dashboard",
+    "/trip-dashboard": "trip_dashboard",
+    "/live/vehicles": "list_map",
+    "/trail": "trail",
+    "/alarm/Config": "alarm",
+    "/geofence/Config": "geofence_config",
+    "/geofence/Group": "geofence_group",
+    "/geofence/Stats": "geofence_stats",
+    "/reports/report": "report", // use "report" for tab check
+    "/reports/schedule": "schedule_report",
+    "/user-management/responsibility": "user_reponsibility",
+    "/user-management/user": "user_access",
+    "/manage/vehicles": "entities",
+    "/manage/group": "group",
+    "/manage/vendor": "vendors",
+    "/manage/customer": "customer",
+  };
+
+
+  // Only check access after roles are loaded
+  if (authLoading || !accessChecked) {
     return <Loader />;
   }
 
-  // Don't render if no user (this should be handled by ProtectedRoute, but just in case)
   if (!user) {
     return null;
+  }
+
+  // Check tab/report access for current route
+  const pathname = location.pathname;
+  let hasAccess = true;
+
+  // Only allow /reports/* routes if "report" tab is present
+  if (
+    pathname.startsWith("/reports/") &&
+    !allowedTabs.includes("report")
+  ) {
+    hasAccess = false;
+  } else if (routeTabMap[pathname]) {
+    const tabKey = routeTabMap[pathname];
+    if (!allowedTabs.includes(tabKey)) {
+      hasAccess = false;
+    }
+  }
+
+  if (!hasAccess) {
+    return <PageNotFound />;
   }
 
   return (

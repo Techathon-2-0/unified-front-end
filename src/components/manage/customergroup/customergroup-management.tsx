@@ -15,6 +15,8 @@ import {
   deleteCustomerGroup,
   searchCustomerGroups,
 } from "../../../data/manage/customergroup"
+import { fetchRolesByUserId } from "@/data/usermanage/responsibility"
+import { useAuth } from "@/context/AuthContext"
 
 export function CustomerGroupManagementPage() {
   const [customerGroups, setCustomerGroups] = useState<CustomerGroup[]>([])
@@ -27,6 +29,8 @@ export function CustomerGroupManagementPage() {
   const itemsPerPage = 5
 
   const { showSuccessToast, showErrorToast, Toaster } = useToast({ position: "top-right" })
+  const { user } = useAuth()
+  const [customerAccess, setCustomerAccess] = useState<number | null>(null)
 
   // Load customer groups on component mount
   useEffect(() => {
@@ -45,6 +49,24 @@ export function CustomerGroupManagementPage() {
 
     return () => clearTimeout(timeoutId)
   }, [searchQuery])
+
+  useEffect(() => {
+    const fetchAccess = async () => {
+      if (user && user.id) {
+        try {
+          const roles = await fetchRolesByUserId(user.id)
+          if (roles && roles.length > 0) {
+            const tabsAccess = roles[0].tabs_access
+            const customerTab = tabsAccess.find((tab: any) => tab.hasOwnProperty("customer"))
+            setCustomerAccess(customerTab ? customerTab.customer : null)
+          }
+        } catch {
+          setCustomerAccess(null)
+        }
+      }
+    }
+    fetchAccess()
+  }, [user])
 
   const loadCustomerGroups = async () => {
     try {
@@ -169,15 +191,18 @@ export function CustomerGroupManagementPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </motion.div>
-              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
-                <Button
-                  onClick={handleCreate}
-                  className="bg-black hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 text-white border-0 rounded-md w-full sm:w-auto"
-                >
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Create New Customer Group
-                </Button>
-              </motion.div>
+              {/* Hide Create New Customer Group button if customerAccess === 1 */}
+              {customerAccess !== 1 && (
+                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
+                  <Button
+                    onClick={handleCreate}
+                    className="bg-black hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 text-white border-0 rounded-md w-full sm:w-auto"
+                  >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Create New Customer Group
+                  </Button>
+                </motion.div>
+              )}
             </div>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>

@@ -3,16 +3,16 @@ import type { Responsibility, ResponsibilityOperation } from "../../types/userma
 
 // Available reports list
 export const availableReports = [
-  "Trip wise alarm report",
+  //"Trip wise alarm report",
   "Stops By Day report",
-  "Movement report",
-  "Fleet Summary report",
+  //"Movement report",
+  //"Fleet Summary report",
   "Trip Summary Report",
-  "Geofence Out In report",
-  "Geofence In Out report",
-  "Drives",
+  //"Geofence Out In report",
+  //"Geofence In Out report",
+  //"Drives",
   "Dashboard",
-  "Daily Summary",
+  //"Daily Summary",
   "Communication status report",
   "Alarm Log",
 ]
@@ -141,6 +141,26 @@ export const deleteResponsibility = async (id: number): Promise<void> => {
   } catch (error) {
     console.error("Delete operation failed:", error)
     throw error
+  }
+}
+
+// Fetch roles by user ID
+export const fetchRolesByUserId = async (userId: number): Promise<Responsibility[]> => {
+  try {
+    const response = await axios.get(
+      `${import.meta.env.VITE_BACKEND_URL}/roles/user/${userId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token") || ""}`,
+        },
+      }
+    );
+    const roles = response.data.roles;
+    return roles;
+  } catch (error) {
+    console.error("Error fetching roles by user ID:", error);
+    throw error;
   }
 }
 

@@ -1,8 +1,10 @@
-import type React from "react"
+import React from "react"
 import { Link } from "react-router-dom"
 import {  MapPin, Truck, Bell, LayoutDashboard, Map, FileText } from "lucide-react"
 import Logo from "../assets/Logo.png"
 import Prism from "../assets/prism.png"
+import { useAuth } from "../context/AuthContext"
+import { fetchRolesByUserId } from "../data/usermanage/responsibility"
 
 interface FooterProps {
   version?: string
@@ -10,6 +12,35 @@ interface FooterProps {
 
 const Footer: React.FC<FooterProps> = ({ version = "v2.4.1" }) => {
   const currentYear = new Date().getFullYear()
+  const { user } = useAuth()
+  const [allowedTabs, setAllowedTabs] = React.useState<string[]>([])
+
+  React.useEffect(() => {
+    const fetchAccess = async () => {
+      if (user && user.id) {
+        try {
+          const roles = await fetchRolesByUserId(user.id)
+          if (roles && roles.length > 0) {
+            const tabs = roles[0].tabs_access.map((tab: any) => Object.keys(tab)[0])
+            setAllowedTabs(tabs)
+          }
+        } catch {
+          setAllowedTabs([])
+        }
+      }
+    }
+    fetchAccess()
+  }, [user])
+
+  // Define quick access items with their required tab
+  const quickAccessItems = [
+    { icon: LayoutDashboard, label: "Trip Dashboard", path: "/trip-dashboard", tab: "trip_dashboard" },
+    { icon: Truck, label: "Live List", path: "/live/vehicles", tab: "list_map" },
+    { icon: Map, label: "Live Map", path: "/live/vehicles", tab: "list_map" },
+    { icon: MapPin, label: "Geofence Config", path: "/geofence/config", tab: "geofence_config" },
+    { icon: FileText, label: "Reports", path: "/reports/report", tab: "report" },
+    { icon: Bell, label: "Alarms", path: "/alarm/config", tab: "alarm" },
+  ]
 
   return (
     <footer className="bg-gradient-to-b from-gray-800 to-gray-900 border-t border-gray-700 text-gray-300 py-6 px-4">
@@ -53,25 +84,20 @@ const Footer: React.FC<FooterProps> = ({ version = "v2.4.1" }) => {
           <div className="flex-1 min-w-[250px]">
             <h4 className="font-semibold text-white mb-4 text-sm uppercase tracking-wider">Quick Access</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
-              {[
-                { icon: LayoutDashboard, label: "Trip Dashboard", path: "/trip-dashboard" },
-                { icon: Truck, label: "Live List", path: "/live/vehicles" },
-                { icon: Map, label: "Live Map", path: "/live/vehicles" },
-                { icon: MapPin, label: "Geofence Config", path: "/geofence/config" },
-                { icon: FileText, label: "Reports", path: "/reports/report" },
-                { icon: Bell, label: "Alarms", path: "/alarm/config" },
-              ].map((item, index) => (
-                <Link
-                  key={index}
-                  to={item.path}
-                  className="flex items-center text-sm group hover:text-[#d5233b] transition-colors"
-                >
-                  <div className="w-7 h-7 rounded-md bg-gray-700/50 flex items-center justify-center mr-2.5 group-hover:bg-red-900/30 transition-colors">
-                    <item.icon size={15} className="text-gray-300 group-hover:text-[#d5233b]" />
-                  </div>
-                  <span>{item.label}</span>
-                </Link>
-              ))}
+              {quickAccessItems
+                .filter(item => allowedTabs.includes(item.tab))
+                .map((item, index) => (
+                  <Link
+                    key={index}
+                    to={item.path}
+                    className="flex items-center text-sm group hover:text-[#d5233b] transition-colors"
+                  >
+                    <div className="w-7 h-7 rounded-md bg-gray-700/50 flex items-center justify-center mr-2.5 group-hover:bg-red-900/30 transition-colors">
+                      <item.icon size={15} className="text-gray-300 group-hover:text-[#d5233b]" />
+                    </div>
+                    <span>{item.label}</span>
+                  </Link>
+                ))}
             </div>
           </div>
         </div>

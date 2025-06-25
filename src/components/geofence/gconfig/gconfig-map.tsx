@@ -3,6 +3,8 @@ import { Satellite, MapIcon, Edit } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import type { GeofenceMapProps } from "../../../types/geofence/gconfig_type"
+import { fetchRolesByUserId } from "@/data/usermanage/responsibility"
+import { useAuth } from "@/context/AuthContext"
 
 export default function GeofenceMap({
   geofences,
@@ -22,6 +24,27 @@ export default function GeofenceMap({
   const [tempLayer, setTempLayer] = useState<any>(null)
   const [drawingMode, setDrawingMode] = useState(false)
   const [polygonMarkers, setPolygonMarkers] = useState<any[]>([])
+  const { user } = useAuth()
+  const [geofenceConfigAccess, setGeofenceConfigAccess] = useState<number | null>(null)
+
+
+  useEffect(() => {
+    const fetchAccess = async () => {
+      if (user && user.id) {
+        try {
+          const roles = await fetchRolesByUserId(user.id)
+          if (roles && roles.length > 0) {
+            const tabsAccess = roles[0].tabs_access
+            const geofenceTab = tabsAccess.find((tab: any) => tab.hasOwnProperty("geofence_config"))
+            setGeofenceConfigAccess(geofenceTab ? geofenceTab.geofence_config : null)
+          }
+        } catch {
+          setGeofenceConfigAccess(null)
+        }
+      }
+    }
+    fetchAccess()
+  }, [user])
 
   // Load Leaflet scripts
   useEffect(() => {
@@ -189,11 +212,12 @@ export default function GeofenceMap({
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
                   <div style="margin-left: 6px; color: #3b82f6; font-weight: 500; font-size: 13px;">Radius: ${geofence.radius}m</div>
                 </div>
-                <button style="width: 100%; padding: 8px 0; background-color: ${circleColor}; color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center;" 
-                  onclick="document.dispatchEvent(new CustomEvent('editGeofence', {detail: ${geofence.id}}))">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="margin-right: 6px;"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
-                  Edit Geofence
-                </button>
+                ${geofenceConfigAccess !== 1 ? `
+  <button style="width: 100%; padding: 8px 0; background-color: ${circleColor}; color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center;" 
+    onclick="document.dispatchEvent(new CustomEvent('editGeofence', {detail: ${geofence.id}}))">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="margin-right: 6px;"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+    Edit Geofence
+  </button>` : ''}
               </div>
             </div>
           `)
@@ -254,11 +278,13 @@ export default function GeofenceMap({
                     ${geofence.polygonPoints ? geofence.polygonPoints.length : 0} Points
                   </div>
                 </div>
+                 ${geofenceConfigAccess !== 1 ?`
                 <button style="width: 100%; padding: 8px 0; background-color: ${polygonColor}; color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center;" 
                   onclick="document.dispatchEvent(new CustomEvent('editGeofence', {detail: ${geofence.id}}))">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="margin-right: 6px;"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                   Edit Geofence
-                </button>
+                </button>`
+                : ''}
               </div>
             </div>
           `)
@@ -300,11 +326,12 @@ export default function GeofenceMap({
                     Exact Location
                   </div>
                 </div>
+                 ${geofenceConfigAccess !== 1 ?`
                 <button style="width: 100%; padding: 8px 0; background-color: ${pointerColor}; color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center;" 
                   onclick="document.dispatchEvent(new CustomEvent('editGeofence', {detail: ${geofence.id}}))">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="margin-right: 6px;"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                   Edit Geofence
-                </button>
+                </button>` : ''}
               </div>
             </div>
           `)
@@ -521,7 +548,7 @@ export default function GeofenceMap({
   // Listen for edit geofence events from popups
   useEffect(() => {
     // Set up global function for removing points in map
-    ;(window as any).removeMapPolygonPoint = (index: number) => {
+    ; (window as any).removeMapPolygonPoint = (index: number) => {
       removePolygonPoint(index)
     }
 
@@ -855,7 +882,7 @@ export default function GeofenceMap({
       )}
 
       {/* Edit button for selected geofence */}
-      {selectedGeofence && !editingGeofence && (
+      {selectedGeofence && !editingGeofence && geofenceConfigAccess !== 1 && (
         <div className="absolute top-20 right-4 z-10 mx-4">
           <Button onClick={() => onEditGeofence(selectedGeofence)} className="flex items-center gap-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white">
             <Edit className="h-4 w-4" />

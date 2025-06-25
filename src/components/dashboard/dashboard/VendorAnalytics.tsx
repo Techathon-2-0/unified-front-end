@@ -201,10 +201,10 @@ const VendorAnalytics: React.FC = () => {
 
       {/* Scrollable Table Container */}
       <div className="flex-1 overflow-hidden">
-        {/* Direct overflow handling for both horizontal and vertical scroll */}
-        <div className="h-full overflow-auto">
-          <div className="min-w-[900px]"> {/* Minimum width to ensure proper layout */}
-            <table className="w-full">
+        {/* Responsive overflow: horizontal scroll only on small screens */}
+        <div className="h-full overflow-x-auto">
+          <div className="w-full h-full" style={{ maxHeight: "340px", overflowY: "auto" }}>
+            <table className="w-full min-w-[900px]">
               <thead className="bg-gray-50 dark:bg-gray-900/50 sticky top-0 z-10 backdrop-blur-sm">
                 <tr>
                   <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700 min-w-[180px]">
@@ -225,7 +225,7 @@ const VendorAnalytics: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {vendors.slice(0,4).map((vendor: any) => (
+                {vendors.map((vendor: any) => (
                   <tr
                     key={vendor.name}
                     className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200 group"
