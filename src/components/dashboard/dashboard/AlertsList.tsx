@@ -169,8 +169,8 @@ const AlertsList: React.FC<AlertsListProps> = ({ userId }) => {
             shipments: [],
             entity: {
               id: item.group_entity?.entity_id || 0,
-              vehicleNumber: "", // Not shown
-              type: "", // Not shown
+              vehicleNumber: item.vehicleNumber || "", // Use vehicleNumber from API
+              type: "",
             },
             notification_sent: {
               emails: [],
@@ -193,7 +193,7 @@ const AlertsList: React.FC<AlertsListProps> = ({ userId }) => {
             shipments: [],
             entity: {
               id: item.group_entity?.entity_id || 0,
-              vehicleNumber: "",
+              vehicleNumber: item.vehicleNumber || "",
               type: "",
             },
             notification_sent: {
@@ -227,10 +227,8 @@ const AlertsList: React.FC<AlertsListProps> = ({ userId }) => {
 
     loadAlerts()
   }, [userId])
-
-  const recentAlarms = alerts.slice(0, 8)
   // Use severity_type from alert if present, fallback to old logic if not
-  const criticalCount = recentAlarms.filter((a) =>
+  const criticalCount = alerts.filter((a) =>
     (a as any).severity_type
       ? (a as any).severity_type === "Critical"
       : a.status === 1
@@ -403,15 +401,6 @@ const AlertsList: React.FC<AlertsListProps> = ({ userId }) => {
           <span className="text-sm text-gray-600 dark:text-gray-400">
             Showing {alerts.length} of {totalAlerts} alerts
           </span>
-          <Link to="/alarm/config">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium transition-colors"
-            >
-              Load More →
-            </motion.button>
-          </Link>
         </div>
       </div>
     </motion.div>
