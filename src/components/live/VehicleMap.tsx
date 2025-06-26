@@ -142,7 +142,7 @@ const VehicleMap = ({ vehicles, loading, filters, onFilterChange }: VehicleMapPr
             <p style="margin: 2px 0;"><strong>Speed:</strong> ${vehicle.speed ? vehicle.speed : "0"} km/h</p>
             <p style="margin: 2px 0;"><strong>Status:</strong> ${vehicle.status}</p>
             <p style="margin: 2px 0;"><strong>Type:</strong> ${vehicle.type}</p>
-            <p style="margin: 2px 0;"><strong>Address:</strong> ${vehicle.address}</p>
+            <p style="margin: 2px 0;"><strong>Lat/Lng:</strong> ${vehicle.lat}, ${vehicle.lng}</p>
           </div>
         `)
 

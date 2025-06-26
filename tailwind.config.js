@@ -13,10 +13,11 @@ module.exports = {
       colors: {
         primary: 'var(--palette-primary-main)',
       },
-      fontFamily: {
-        sans: ['Georama_SemiExpanded-Regular', ...fontFamily.sans],
-        georama: ['Georama_SemiExpanded-Regular', 'sans-serif'],
-      },
+
+    },
+    fontFamily: {
+      sans: ['Georama_SemiExpanded-Regular', ...fontFamily.sans],
+      georama: ['Georama_SemiExpanded-Regular'],
     },
   },
   plugins: [require("tailwindcss-animate")],

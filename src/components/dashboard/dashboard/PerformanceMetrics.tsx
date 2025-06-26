@@ -121,10 +121,20 @@ const PerformanceMetrics = () => {
     )
   : 0;
 
+  // Count all critical alerts
   const criticalAlerts = alerts.filter((a) => a.severity_type === "Critical").length
 
+  // Count unique vehicles with at least one critical alert
+  const criticalAlertVehicleSet = new Set(
+    alerts
+      .filter((a) => a.severity_type === "Critical")
+      .map((a) => a.vehicleNumber)
+  );
+  const vehiclesWithCriticalAlert = criticalAlertVehicleSet.size;
+
   const fleetUtilization = totalVehicles > 0 ? Math.round((activeVehicles / totalVehicles) * 100) : 0
-  const alertRate = totalVehicles > 0 ? Math.round((criticalAlerts / totalVehicles) * 100) : 0
+  // Alert rate: percent of vehicles with at least one critical alert
+  const alertRate = totalVehicles > 0 ? Math.round((vehiclesWithCriticalAlert / totalVehicles) * 100) : 0
   const efficiencyScore = 100 - alertRate
 
   // Use trip_status for active trips
@@ -280,7 +290,7 @@ const PerformanceMetrics = () => {
               <span className="font-medium text-gray-700 dark:text-gray-300">Fleet Status:</span> {activeVehicles}/{totalVehicles} active ({fleetUtilization}%)
             </div>
             <div>
-              <span className="font-medium text-gray-700 dark:text-gray-300">Alert Level:</span> {criticalAlerts} critical alerts ({alertRate}%)
+              <span className="font-medium text-gray-700 dark:text-gray-300">Alert:</span> {criticalAlerts} critical alerts ({alertRate}%)
             </div>
           </div>
         </div>

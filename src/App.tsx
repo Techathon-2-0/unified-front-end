@@ -29,7 +29,7 @@ import { ThemeProvider } from "./context/ThemeContext"
 
 const Appp = () => {
   return (
-    <div className="font-sans min-h-screen">
+    <div className="georama min-h-screen">
       <ThemeProvider>
       <AuthProvider>
         <Toaster

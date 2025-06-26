@@ -44,13 +44,13 @@
 }
 
 @font-face {
-  font-family: 'Georama_SemiExpanded-Regular';
+  font-family: 'georama';
   src: url('./assets/Georama_SemiExpanded-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
 }
 @font-face {
-  font-family: 'Georama_SemiExpanded-Bold';
+  font-family: 'georama-bold';
   src: url('./assets/Georama_SemiExpanded-Bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
